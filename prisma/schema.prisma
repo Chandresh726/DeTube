@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String?
+  email       String    @unique
+  image       String?
+  password    String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  channelId   Int?      @unique
+  channel     Channel?  // A user can create only one channel
+  subscriptions Subscription[] // Users can subscribe to multiple channels
+  comments    Comment[] // Users can comment on videos
+  reactions   Reaction[] // Users can react to videos (like or dislike)
+}
+
+model Channel {
+  id          Int       @id @default(autoincrement())
+  name        String
+  image       String?
+  description String?
+  userId      Int       @unique
+  user        User      @relation(fields: [userId], references: [id])
+  videos      Video[]   // A channel can have multiple videos
+  subscriptions Subscription[] // A channel can have multiple subscriptions
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Video {
+  id          String    @id
+  title       String
+  description String?
+  thumbnailUrl String
+  videoUrl    String
+  views       Int       @default(0)
+  channelId   Int
+  channel     Channel   @relation(fields: [channelId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  comments    Comment[] // A video can have multiple comments
+  reactions   Reaction[] // A video can have multiple reactions (likes or dislikes)
+}
+
+model Subscription {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  channelId  Int
+  user       User      @relation(fields: [userId], references: [id])
+  channel    Channel   @relation(fields: [channelId], references: [id])
+  createdAt  DateTime  @default(now())
+}
+
+model Comment {
+  id          Int       @id @default(autoincrement())
+  content     String
+  videoId     String
+  userId      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  video       Video     @relation(fields: [videoId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model Reaction {
+  id          Int       @id @default(autoincrement())
+  videoId     String
+  userId      Int
+  type        ReactionType
+  createdAt   DateTime  @default(now())
+  video       Video     @relation(fields: [videoId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+  @@unique([videoId, userId]) // Ensures one reaction per user per video
+}
+
+enum ReactionType {
+  LIKE
+  DISLIKE
+}
