@@ -2,8 +2,10 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from "next-auth/react"
+import { useTheme } from '../ThemeContext';
 
 const SignupForm = () => {
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,10 +56,10 @@ const SignupForm = () => {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto mt-10">
+    <div className={`p-6 max-w-md mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <div className="my-2 text-lg text-gray-400">Name</div>
+          <div className="my-2 text-lg">Name</div>
           <input
             type="text"
             value={name}
@@ -67,7 +69,7 @@ const SignupForm = () => {
           />
         </div>
         <div>
-          <div className="my-2 text-lg text-gray-400">Email</div>
+          <div className="my-2 text-lg">Email</div>
           <input
             type="email"
             value={email}
@@ -77,7 +79,7 @@ const SignupForm = () => {
           />
         </div>
         <div>
-          <div className="my-2 text-lg text-gray-400">Password</div>
+          <div className="my-2 text-lg">Password</div>
           <input
             type="password"
             value={password}
@@ -87,7 +89,7 @@ const SignupForm = () => {
           />
         </div>
         <div>
-          <div className="my-2 text-lg text-gray-400">Confirm Password</div>
+          <div className="my-2 text-lg">Confirm Password</div>
           <input
             type="password"
             value={confirmPassword}
@@ -115,7 +117,7 @@ const SignupForm = () => {
         </button>
       </form>
       <div className="mt-6 text-center">
-        <p className="text-gray-400">
+        <p className="">
           Already have an account?{' '}
           <a
             href="/logIn"

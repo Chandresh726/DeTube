@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiOutlineDislike } from 'react-icons/ai';
 import { reactToVideo } from '../../util/fetch/reaction';
+import { useTheme } from '../ThemeContext';
 
 const Reaction = ({ stats, videoId }) => {
+    const { theme } = useTheme();
     const { data: session } = useSession();
     const [likes, setLikes] = useState(stats.likeCount);
     const [dislikes, setDislikes] = useState(stats.dislikeCount);
@@ -68,7 +70,7 @@ const Reaction = ({ stats, videoId }) => {
     };
 
     return (
-        <div className="my-4 w-full p-2 rounded-3xl flex items-center space-x-4 bg-gray-800">
+        <div className={`my-4 w-full p-2 rounded-3xl flex items-center space-x-4 ${theme==='dark'?'bg-gray-800':'bg-gray-500'}`}>
             <div
                 className={`flex flex-col items-center justify-center w-1/2 cursor-pointer ${isLiked ? 'text-green-500' : 'text-white'} hover:text-green-500 ${!userId && 'cursor-not-allowed'}`}
                 onClick={userId ? handleLike : null}

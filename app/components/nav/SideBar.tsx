@@ -4,6 +4,7 @@ import { GoHome, GoHistory } from "react-icons/go";
 import { MdOutlineSubscriptions } from "react-icons/md";
 import { GrChannel, GrUpload } from "react-icons/gr";
 import { BiLike } from "react-icons/bi";
+import { useTheme } from '../ThemeContext';
 
 interface SidebarProps {
     session: any;
@@ -12,9 +13,10 @@ interface SidebarProps {
 }
 
 const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => {
+    const { theme } = useTheme();
 
     return (
-        <div className={`bg-gray-900 text-white fixed left-0 top-16 z-10 h-[calc(100vh-4rem)] transition-width duration-200 ease-in-out ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden`}>
+        <div className={`${theme==='dark'?'bg-gray-900 text-white':'bg-gray-100 text-black'} fixed left-0 top-16 z-10 h-[calc(100vh-4rem)] transition-width duration-200 ease-in-out ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden`}>
             <div className="px-1">
                 <ul className="menu">
                     <li>

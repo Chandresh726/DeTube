@@ -3,13 +3,17 @@ import { MdUpload } from "react-icons/md";
 import LogIn from '../button/LogInBtn';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
+import ThemeToggle from '../button/ThemeBtn';
 
 const NavbarRight = ({ session }: { session: any }) => {
     if (session) {
         return (
             <div className="navbar-end">
                 <div className='hidden md:block'>
-                    <button className="btn btn-ghost mr-3 text-red-500"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
+                    <button className="btn btn-ghost mr-1 text-red-500"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
+                </div>
+                <div className='mx-1'>
+                    <ThemeToggle />
                 </div>
                 <div className='mr-2'>{session.user?.name?.split(" ")[0]}</div>
                 <div className="dropdown dropdown-end">
@@ -35,6 +39,9 @@ const NavbarRight = ({ session }: { session: any }) => {
 
     return (
         <div className="navbar-end">
+            <div className='mx-1'>
+                <ThemeToggle />
+            </div>
             <LogIn />
         </div>
     );

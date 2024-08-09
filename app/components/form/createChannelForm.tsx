@@ -6,8 +6,10 @@ import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/s3';
 import { createChannel } from '../../util/fetch/channel';
+import { useTheme } from '../ThemeContext';
 
 const CreateChannelForm = ({ userId }: { userId: Number }) => {
+  const { theme } = useTheme();
   const { data: session, status, update } = useSession()
 
   const [channelName, setChannelName] = useState('');
@@ -71,11 +73,11 @@ const CreateChannelForm = ({ userId }: { userId: Number }) => {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto mt-10">
+    <div className={`p-6 max-w-4xl mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="relative flex space-x-4">
           <div className='m-2'>
-            <div className="my-2 text-lg text-gray-400">Channel Logo</div>
+            <div className="my-2 text-lg">Channel Logo</div>
             <div className="relative h-56 w-56 aspect-square border border-gray-600 rounded-lg overflow-hidden">
               {uploadingLogo ? (
                 <div className="skeleton h-full w-full"></div>
@@ -102,7 +104,7 @@ const CreateChannelForm = ({ userId }: { userId: Number }) => {
           </div>
           <div className='m-2 w-full'>
             <div>
-              <div className="my-2 text-lg text-gray-400">Channel Name</div>
+              <div className="my-2 text-lg">Channel Name</div>
               <input
                 type="text"
                 value={channelName}
@@ -112,7 +114,7 @@ const CreateChannelForm = ({ userId }: { userId: Number }) => {
               />
             </div>
             <div>
-              <div className="my-2 text-lg text-gray-400">Description</div>
+              <div className="my-2 text-lg">Description</div>
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}

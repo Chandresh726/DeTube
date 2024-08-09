@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SessionWrapper from './components/wrapper/SessionWrapper';
-import ClientLayout from './components/wrapper/NavBarWrapper';
 import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 // import NavBarWrapper from "./components/wrapper/NavBarWrapper";
 import dynamic from "next/dynamic";
+import { ThemeProvider } from "./components/ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,10 +19,10 @@ export const metadata: Metadata = {
 };
 
 const NavbarWrapper = dynamic(
-  ()=>{
+  () => {
     return import("./components/wrapper/NavBarWrapper");
   },
-  {ssr: false}
+  { ssr: false }
 )
 
 export default async function RootLayout({
@@ -34,13 +34,15 @@ export default async function RootLayout({
 
   return (
     <SessionWrapper>
-      <html lang="en" data-theme="dark">
-        <body className={inter.className}>
-          <NavbarWrapper session={session}>
-            {children}
-          </NavbarWrapper>
-        </body>
-      </html>
+      <ThemeProvider>
+        <html lang="en">
+          <body className={inter.className}>
+            <NavbarWrapper session={session}>
+              {children}
+            </NavbarWrapper>
+          </body>
+        </html>
+      </ThemeProvider>
     </SessionWrapper>
   );
 }

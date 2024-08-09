@@ -2,10 +2,12 @@ import Image from 'next/image';
 import React from 'react';
 import VideoCard from './video/VideoCard';
 import SubscribeButton from './button/SubscribeButton';
+import { useTheme } from './ThemeContext';
 
 const ViewChannel = ({ channelData }) => {
+    const { theme } = useTheme();
     return (
-        <div className="container mx-auto lg:px-16">
+        <div className={`container mx-auto lg:px-16 ${theme==='dark'?'':'text-black'}`}>
             <div className='flex flex-wrap sm:flex-nowrap items-stretch justify-center'>
                 <div className='flex-shrink-0 p-4 w-1/2 md:w-1/3 lg:w-1/6'>
                     <Image

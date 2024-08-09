@@ -1,15 +1,17 @@
 "use client";
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useTheme } from '../ThemeContext';
 
 const VideoCard = ({ video , showChannel }) => {
+    const { theme } = useTheme();
     const router = useRouter();
     const handleClick = () => {
         router.push(`/video/${video.id}`); // Use router.push for client-side navigation
     };
     return (
         <div
-            className="card card-compact bg-base-100 shadow-xl w-full transform transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer"
+            className={`card card-compact bg-base-100 shadow-xl w-full transform transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer ${theme==='dark'?'':'text-black'}`}
             onClick={handleClick}
         >
             <figure className="relative aspect-video">

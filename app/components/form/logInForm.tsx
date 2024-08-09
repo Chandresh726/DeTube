@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
+import { useTheme } from '../ThemeContext';
 
 const LogInForm = () => {
+  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingFlag, setLoadingFlag] = useState(false);
@@ -32,11 +34,11 @@ const LogInForm = () => {
   };
 
   return (
-    <div className="p-6 max-w-md mx-auto mt-10">
+    <div className={`p-6 max-w-md mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
       <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <div className="my-1 text-lg text-gray-400">Email</div>
+          <div className="my-1 text-lg">Email</div>
           <input
             type="email"
             value={email}
@@ -46,7 +48,7 @@ const LogInForm = () => {
           />
         </div>
         <div>
-          <div className="my-1 text-lg text-gray-400">Password</div>
+          <div className="my-1 text-lg">Password</div>
           <input
             type="password"
             value={password}
@@ -91,7 +93,7 @@ const LogInForm = () => {
         </button>
       </div>
       <div className="mt-6 text-center">
-        <p className="text-gray-400">
+        <p className="">
           Don't have an account?{' '}
           <a
             href="/signUp"

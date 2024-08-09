@@ -7,9 +7,10 @@ import { useRouter } from 'next/navigation'
 import ProgressBar from '../video/progressBar';
 import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/s3';
 import { createVideo } from '../../util/fetch/video';
+import { useTheme } from '../ThemeContext';
 
 const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
-
+    const { theme } = useTheme();
     const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
     const [video, setVideo] = useState<string | File | null>(null);
     const [videoId, setVideoId] = useState<string | null>(null);
@@ -106,11 +107,11 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
     };
 
     return (
-        <div className="p-2 lg:mx-32 mx-auto">
+        <div className={`p-2 lg:mx-32 mx-auto ${theme==='dark'?'text-gray-400':'text-black'}`}>
             <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="md:relative md:flex space-x-4">
                     <div>
-                        <div className="my-2 text-lg text-gray-400">Upload Thumbnail</div>
+                        <div className="my-2 text-lg">Upload Thumbnail</div>
                         <div className="relative md:w-96 aspect-video border border-gray-600 rounded-lg overflow-hidden">
                             {uploadingThumbnail ? (
                                 <div className="skeleton h-full w-full"></div>
@@ -137,7 +138,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
 
                     <div className='hidden md:block w-full'>
                         <div>
-                            <div className="my-2 text-lg text-gray-400">Select Video</div>
+                            <div className="my-2 text-lg">Select Video</div>
                             <input
                                 type="file"
                                 accept="video/*"
@@ -147,7 +148,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
                             <ProgressBar progress={progress} flag={uploadingVideo} />
                         </div>
                         <div>
-                            <div className="my-2 text-lg text-gray-400">Title</div>
+                            <div className="my-2 text-lg">Title</div>
                             <input
                                 type="text"
                                 value={title}
@@ -162,7 +163,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
                 <div className='md:hidden'>
                     <div className='w-full'>
                         <div>
-                            <div className="my-2 text-lg text-gray-400">Select Video</div>
+                            <div className="my-2 text-lg">Select Video</div>
                             <input
                                 type="file"
                                 accept="video/*"
@@ -172,7 +173,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
                             <ProgressBar progress={progress} flag={uploadingVideo} />
                         </div>
                         <div>
-                            <div className="my-2 text-lg text-gray-400">Title</div>
+                            <div className="my-2 text-lg">Title</div>
                             <input
                                 type="text"
                                 value={title}
@@ -185,7 +186,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
                 </div>
 
                 <div>
-                    <div className="my-2 text-lg text-gray-400">Description</div>
+                    <div className="my-2 text-lg">Description</div>
                     <textarea
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}

@@ -4,10 +4,12 @@ import SubscribeButton from '../button/SubscribeButton';
 import VideoInfo from './VideoInfo';
 import CommentSection from './comment/CommentSection';
 import ChannelInfo from './ChannelInfo';
+import { useTheme } from '../ThemeContext';
 
 const ViewVideo = ({ videoData }) => {
+    const { theme } = useTheme();
     return (
-        <div className="container mx-auto px-1 lg:px-16">
+        <div className={`container mx-auto px-1 lg:px-16 ${theme==='dark'?'':'text-black'}`}>
             <div className="flex flex-col lg:flex-row">
                 <div className="flex-grow lg:w-3/4">
                     <div className="relative aspect-video rounded-md overflow-hidden">
