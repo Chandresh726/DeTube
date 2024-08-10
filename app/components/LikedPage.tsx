@@ -7,17 +7,16 @@ import { getLikedVideos } from '../util/fetch/liked';
 const LikedPage = ({ id }) => {
     const [videos, setVideos] = useState(null);
 
-    const fetchVideos = async () => {
-        try {
-            const response = await getLikedVideos(id);
-            const { videos } = response;
-            setVideos(videos);
-        } catch (error) {
-            console.error('Error fetching videos:', error);
-        }
-    };
-
     useEffect(() => {
+        const fetchVideos = async () => {
+            try {
+                const response = await getLikedVideos(id);
+                const { videos } = response;
+                setVideos(videos);
+            } catch (error) {
+                console.error('Error fetching videos:', error);
+            }
+        };
         fetchVideos();
     }, []);
 

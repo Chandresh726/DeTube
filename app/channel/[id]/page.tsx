@@ -12,18 +12,18 @@ interface PageProps {
 
 const ChannelPage = ({ params }: PageProps) => {
     const channelId = params.id;
-    const [channelData,setChannelData] = useState(null);
-    const prepareData = async () => {
-        const data = await getChannelData(Number(channelId));
-        setChannelData(data)
-    }
+    const [channelData, setChannelData] = useState(null);
     useEffect(() => {
+        const prepareData = async () => {
+            const data = await getChannelData(Number(channelId));
+            setChannelData(data)
+        }
         prepareData()
     }, [])
 
 
     if (!channelData) {
-        return <ViewChannelLoading/>
+        return <ViewChannelLoading />
     }
 
     return (

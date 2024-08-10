@@ -7,18 +7,17 @@ const CommentSection = ({ videoId }) => {
     const [comments, setComments] = useState(null);
     const [flag, setFlag] = useState(false);
 
-    const updateComments = async () => {
-        const data = await getComments(videoId);
-        if (data) {
-            setComments(data.comments);
-        }
-    }
-
     const triggerUpdate = () => {
         setFlag(!flag)
     }
 
     useEffect(() => {
+        const updateComments = async () => {
+            const data = await getComments(videoId);
+            if (data) {
+                setComments(data.comments);
+            }
+        }
         updateComments()
     }, [flag])
 

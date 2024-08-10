@@ -14,12 +14,11 @@ const VideoPage = ({ params }: PageProps) => {
     const videoId = params.id;
     const [videoData, setVideoData] = useState(null)
 
-    const prepareData = async () => {
-        const data = await getVideoData(videoId);
-        setVideoData(data)
-    }
-
     useEffect(() => {
+        const prepareData = async () => {
+            const data = await getVideoData(videoId);
+            setVideoData(data)
+        }
         prepareData()
     }, [])
 

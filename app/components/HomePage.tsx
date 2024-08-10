@@ -9,18 +9,17 @@ const HomePage = () => {
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
 
-    const fetchVideos = async (page) => {
-        try {
-            const response = await getHomeVideoData(page, 6);
-            const { videos, totalPages } = response;
-            setVideos((prev) => [...prev, ...videos]);
-            setHasMore(page < totalPages);
-        } catch (error) {
-            console.error('Error fetching videos:', error);
-        }
-    };
-
     useEffect(() => {
+        const fetchVideos = async (page) => {
+            try {
+                const response = await getHomeVideoData(page, 6);
+                const { videos, totalPages } = response;
+                setVideos((prev) => [...prev, ...videos]);
+                setHasMore(page < totalPages);
+            } catch (error) {
+                console.error('Error fetching videos:', error);
+            }
+        };
         fetchVideos(page);
     }, [page]);
 
