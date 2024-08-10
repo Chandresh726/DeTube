@@ -1,8 +1,8 @@
 import React from 'react'
 import { getServerSession } from "next-auth";
-import { authOptions } from '../api/auth/[...nextauth]/route';
 import { redirect } from 'next/navigation';
 import SubscriptionPage from '../components/SubscriptionPage'
+import { authOptions } from '../util/auth';
 
 const Subscription = async () => {
   const session = await getServerSession(authOptions);
