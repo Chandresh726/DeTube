@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiOutlineDislike } from 'react-icons/ai';
 import { reactToVideo } from '../../util/fetch/reaction';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const Reaction = ({ stats, videoId }) => {
     const { theme } = useTheme();

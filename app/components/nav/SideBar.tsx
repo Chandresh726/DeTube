@@ -1,10 +1,10 @@
 import Link from 'next/link';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { GoHome, GoHistory } from "react-icons/go";
 import { MdOutlineSubscriptions } from "react-icons/md";
 import { GrChannel, GrUpload } from "react-icons/gr";
 import { BiLike } from "react-icons/bi";
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 interface SidebarProps {
     session: any;
@@ -14,10 +14,31 @@ interface SidebarProps {
 
 const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => {
     const { theme } = useTheme();
+    const [disableTransition, setDisableTransition] = useState(false);
+
+    useEffect(() => {
+        // Disable transitions temporarily during theme change
+        setDisableTransition(true);
+
+        // Re-enable transitions after a short delay
+        const timeoutId = setTimeout(() => {
+            setDisableTransition(false);
+        }, 100); // Adjust delay if necessary
+
+        return () => clearTimeout(timeoutId);
+    }, [theme]);
 
     return (
-        <div className={`${theme==='dark'?'bg-gray-900 text-white':'bg-gray-100 text-black'} fixed left-0 top-16 z-10 h-[calc(100vh-4rem)] transition-width duration-200 ease-in-out ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden`}>
-            <div className="px-1">
+        <div
+            className={`${disableTransition ? 'transition-none' : 'transition-all duration-200 ease-in-out'} 
+            ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'} 
+            fixed left-0 top-16 z-10 h-[calc(100vh-4rem)]
+            ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden`}
+        >
+            <div
+                className={`px-1 transition-opacity duration-200 ease-in-out 
+                ${isOpen ? 'opacity-100 delay-200' : 'opacity-0'}`}
+            >
                 <ul className="menu">
                     <li>
                         <div className='text-lg'>

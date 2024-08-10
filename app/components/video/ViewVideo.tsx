@@ -4,7 +4,7 @@ import SubscribeButton from '../button/SubscribeButton';
 import VideoInfo from './VideoInfo';
 import CommentSection from './comment/CommentSection';
 import ChannelInfo from './ChannelInfo';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const ViewVideo = ({ videoData }) => {
     const { theme } = useTheme();

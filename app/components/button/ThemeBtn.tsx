@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const ThemeToggle = () => {
     const { theme, toggleTheme } = useTheme();

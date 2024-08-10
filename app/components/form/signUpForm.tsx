@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn } from "next-auth/react"
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const SignupForm = () => {
   const { theme } = useTheme();

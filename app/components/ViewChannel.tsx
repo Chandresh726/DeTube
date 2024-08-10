@@ -2,7 +2,7 @@ import Image from 'next/image';
 import React from 'react';
 import VideoCard from './video/VideoCard';
 import SubscribeButton from './button/SubscribeButton';
-import { useTheme } from './ThemeContext';
+import { useTheme } from './wrapper/ThemeContext';
 
 const ViewChannel = ({ channelData }) => {
     const { theme } = useTheme();

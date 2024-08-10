@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
 import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/s3';
 import { createChannel } from '../../util/fetch/channel';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const CreateChannelForm = ({ userId }: { userId: Number }) => {
   const { theme } = useTheme();

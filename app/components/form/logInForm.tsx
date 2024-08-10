@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const LogInForm = () => {
   const { theme } = useTheme();

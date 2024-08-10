@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import ProgressBar from '../video/progressBar';
 import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/s3';
 import { createVideo } from '../../util/fetch/video';
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
     const { theme } = useTheme();

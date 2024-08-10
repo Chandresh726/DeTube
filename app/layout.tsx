@@ -6,7 +6,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./api/auth/[...nextauth]/route";
 // import NavBarWrapper from "./components/wrapper/NavBarWrapper";
 import dynamic from "next/dynamic";
-import { ThemeProvider } from "./components/ThemeContext";
+import { ThemeProvider } from "./components/wrapper/ThemeContext";
 
 const inter = Inter({ subsets: ["latin"] });
 

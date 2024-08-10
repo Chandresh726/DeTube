@@ -1,7 +1,7 @@
 import React from 'react'
 import NavbarRight from './NavbarRight'
 import { FaYoutube } from "react-icons/fa6"
-import { useTheme } from '../ThemeContext';
+import { useTheme } from '../wrapper/ThemeContext';
 
 interface NavbarProps {
     session: any;
