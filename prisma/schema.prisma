@@ -14,80 +14,124 @@ datasource db {
 }
 
 model User {
-  id          Int       @id @default(autoincrement())
-  name        String?
-  email       String    @unique
-  image       String?
-  password    String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  channelId   Int?      @unique
-  channel     Channel?  // A user can create only one channel
+  id            Int            @id @default(autoincrement())
+  name          String?
+  email         String         @unique
+  image         String?
+  password      String?
+  balance       Int            @default(0)
+  lockedBalance Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  channelId     Int?           @unique
+  channel       Channel? // A user can create only one channel
   subscriptions Subscription[] // Users can subscribe to multiple channels
-  comments    Comment[] // Users can comment on videos
-  reactions   Reaction[] // Users can react to videos (like or dislike)
+  comments      Comment[] // Users can comment on videos
+  reactions     Reaction[] // Users can react to videos (like or dislike)
+  wallets       Wallet[]
 }
 
 model Channel {
-  id          Int       @id @default(autoincrement())
-  name        String
-  image       String?
-  description String?
-  userId      Int       @unique
-  user        User      @relation(fields: [userId], references: [id])
-  videos      Video[]   // A channel can have multiple videos
+  id            Int            @id @default(autoincrement())
+  name          String
+  image         String?
+  description   String?
+  userId        Int            @unique
+  user          User           @relation(fields: [userId], references: [id])
+  videos        Video[] // A channel can have multiple videos
   subscriptions Subscription[] // A channel can have multiple subscriptions
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  transactions  Transaction[]
 }
 
 model Video {
-  id          String    @id
-  title       String
-  description String?
+  id           String     @id
+  title        String
+  description  String?
   thumbnailUrl String
-  videoUrl    String
-  views       Int       @default(0)
-  channelId   Int
-  channel     Channel   @relation(fields: [channelId], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  comments    Comment[] // A video can have multiple comments
-  reactions   Reaction[] // A video can have multiple reactions (likes or dislikes)
+  videoUrl     String
+  views        Int        @default(0)
+  channelId    Int
+  channel      Channel    @relation(fields: [channelId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  comments     Comment[] // A video can have multiple comments
+  reactions    Reaction[] // A video can have multiple reactions (likes or dislikes)
 }
 
 model Subscription {
-  id         Int       @id @default(autoincrement())
-  userId     Int
-  channelId  Int
-  user       User      @relation(fields: [userId], references: [id])
-  channel    Channel   @relation(fields: [channelId], references: [id])
-  createdAt  DateTime  @default(now())
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  channelId Int
+  user      User     @relation(fields: [userId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id])
+  createdAt DateTime @default(now())
 }
 
 model Comment {
-  id          Int       @id @default(autoincrement())
-  content     String
-  videoId     String
-  userId      Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  video       Video     @relation(fields: [videoId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  id        Int      @id @default(autoincrement())
+  content   String
+  videoId   String
+  userId    Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  video     Video    @relation(fields: [videoId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Reaction {
-  id          Int       @id @default(autoincrement())
-  videoId     String
-  userId      Int
-  type        ReactionType
-  createdAt   DateTime  @default(now())
-  video       Video     @relation(fields: [videoId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
+  id        Int          @id @default(autoincrement())
+  videoId   String
+  userId    Int
+  type      ReactionType
+  createdAt DateTime     @default(now())
+  video     Video        @relation(fields: [videoId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
+
   @@unique([videoId, userId]) // Ensures one reaction per user per video
 }
 
 enum ReactionType {
   LIKE
   DISLIKE
+}
+
+model Wallet {
+  id           Int           @id @default(autoincrement())
+  address      String        @unique // Wallet address
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+}
+
+model Transaction {
+  id            Int               @id @default(autoincrement())
+  channelId     Int?
+  walletId      Int // The wallet that initiated the transaction
+  amount        Int
+  type          TransactionType
+  status        TransactionStatus @default(PENDING)
+  transactionId String? // Blockchain transaction ID
+  signature     String? // Blockchain transaction signature
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  channel       Channel?          @relation(fields: [channelId], references: [id])
+  wallet        Wallet            @relation(fields: [walletId], references: [id])
+
+  @@index([channelId])
+  @@index([walletId])
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  GIFT
+}
+
+enum TransactionStatus {
+  SUCCESS
+  FAILED
+  PENDING
 }
