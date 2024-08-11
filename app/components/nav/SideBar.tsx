@@ -5,6 +5,7 @@ import { MdOutlineSubscriptions } from "react-icons/md";
 import { GrChannel, GrUpload } from "react-icons/gr";
 import { BiLike } from "react-icons/bi";
 import { useTheme } from '../wrapper/ThemeContext';
+import VirtualWallet from '../web3/VirtualWallet';
 
 interface SidebarProps {
     session: any;
@@ -33,13 +34,13 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
             className={`${disableTransition ? 'transition-none' : 'transition-all duration-200 ease-in-out'} 
             ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'} 
             fixed left-0 top-16 z-10 h-[calc(100vh-4rem)]
-            ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden`}
+            ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden flex flex-col`}
         >
             <div
                 className={`px-1 transition-opacity duration-200 ease-in-out 
                 ${isOpen ? 'opacity-100 delay-200' : 'opacity-0'}`}
             >
-                <ul className="menu">
+                <ul className="menu flex-grow">
                     <li>
                         <div className='text-lg'>
                             <GoHome className='w-6 h-6 mr-2' />
@@ -103,6 +104,11 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                     }
                 </ul>
             </div>
+            {session &&
+                <div className="flex-none mt-auto">
+                    <VirtualWallet userId={session.user.id} />
+                </div>
+            }
         </div>
     );
 };

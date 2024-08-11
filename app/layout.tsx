@@ -7,6 +7,7 @@ import { getServerSession } from "next-auth";
 import dynamic from "next/dynamic";
 import { ThemeProvider } from "./components/wrapper/ThemeContext";
 import { authOptions } from "./util/auth";
+import AppWalletProvider from "./components/AppWalletProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -33,15 +34,17 @@ export default async function RootLayout({
 
   return (
     <SessionWrapper>
-      <ThemeProvider>
-        <html lang="en">
-          <body className={inter.className}>
-            <NavbarWrapper session={session}>
-              {children}
-            </NavbarWrapper>
-          </body>
-        </html>
-      </ThemeProvider>
+      <AppWalletProvider>
+        <ThemeProvider>
+          <html lang="en">
+            <body className={inter.className}>
+              <NavbarWrapper session={session}>
+                {children}
+              </NavbarWrapper>
+            </body>
+          </html>
+        </ThemeProvider>
+      </AppWalletProvider>
     </SessionWrapper>
   );
 }

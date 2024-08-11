@@ -4,6 +4,7 @@ import LogIn from '../button/LogInBtn';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import ThemeToggle from '../button/ThemeBtn';
+import ConnectWallet from '../web3/ConnectWallet';
 
 const NavbarRight = ({ session }: { session: any }) => {
     if (session) {
@@ -33,6 +34,9 @@ const NavbarRight = ({ session }: { session: any }) => {
                         <li><button onClick={() => signOut()}>Sign Out</button></li>
                     </ul>
                 </div>
+                {/* <div className='hiddeen lg:block'>
+                    <ConnectWallet />
+                </div> */}
             </div>
         );
     }
