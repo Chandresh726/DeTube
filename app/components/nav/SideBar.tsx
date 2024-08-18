@@ -73,12 +73,14 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                             </div>
                         </li>
                     }
-                    <li>
-                        <div className='text-lg'>
-                            <GoHistory className='w-6 h-6 mr-2' />
-                            <Link href="/statement">Your Transactions</Link>
-                        </div>
-                    </li>
+                    {session &&
+                        <li>
+                            <div className='text-lg'>
+                                <GoHistory className='w-6 h-6 mr-2' />
+                                <Link href="/statement">Your Transactions</Link>
+                            </div>
+                        </li>
+                    }
                     {session &&
                         <li>
                             <div className='text-lg'>
