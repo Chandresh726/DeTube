@@ -53,3 +53,19 @@ export const depositRequest = async (address: String, amount: Number, signature:
     }
     return await response.json();
 }
+
+export const withdrawRequest = async (walletAddress: String, amount: Number, userId: Number) => {
+    const response = await fetch('/api/wallet/withdraw', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            userId,
+            walletAddress,
+            amount
+        }),
+    });
+    if (!response.ok) {
+        throw new Error('Failed to deposit');
+    }
+    return await response.json();
+}
