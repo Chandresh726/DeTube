@@ -89,3 +89,7 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #4a5568 #2d3748; /* thumb color, track color */
 }
+
+.modal {
+  border: none;
+}

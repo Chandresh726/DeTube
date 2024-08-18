@@ -67,10 +67,15 @@ const ThanksButton = ({ channelId, channelName }) => {
         }
     };
 
+    const openModal = () => {
+        const modal = document.getElementById('my_modal_3') as HTMLDialogElement;
+        modal.showModal();
+    };
+
     return (
         <div className={`flex flex-col mt-4 mx-2 items-center w-full rounded-3xl bg-blue-400 ${theme === 'dark' ? '' : 'text-black'}`}>
             <button
-                onClick={() => document.getElementById('my_modal_3').showModal()}
+                onClick={openModal}
                 className={`py-2 rounded-lg font-semibold transition-colors duration-300 hover:opacity-75`}
             >
                 <div className='flex items-center'>
