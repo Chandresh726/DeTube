@@ -65,7 +65,7 @@ export const withdrawRequest = async (walletAddress: String, amount: Number, use
         }),
     });
     if (!response.ok) {
-        throw new Error('Failed to deposit');
+        throw new Error('Failed to withdraw');
     }
     return await response.json();
 }

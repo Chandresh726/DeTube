@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         // Create a new transaction record in the database with status PENDING
         const transaction = await prisma.transaction.create({
             data: {
+                userId: wallet.userId,
                 walletId: wallet.id,
                 amount: parseInt(amount),
                 type: 'DEPOSIT',
@@ -34,7 +35,6 @@ export async function POST(req: NextRequest) {
 
         // Check transaction status
         const transactionStatus = await connection.getSignatureStatus(signature);
-        console.log(transactionStatus);
 
         // Determine new balance and transaction status
         const newStatus = transactionStatus?.value?.confirmations ? 'SUCCESS' : 'FAILED';
@@ -48,7 +48,6 @@ export async function POST(req: NextRequest) {
                     status: newStatus,
                 },
             });
-            console.log(trnx);
 
             if (newStatus === 'SUCCESS') {
                 const user = await prisma.user.update({
@@ -59,7 +58,6 @@ export async function POST(req: NextRequest) {
                         },
                     },
                 });
-                console.log(user);
             }
         });
 

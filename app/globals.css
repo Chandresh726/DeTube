@@ -25,3 +25,67 @@ body {
     text-wrap: balance;
   }
 }
+
+/* Custom scrollbar using Tailwind's @apply */
+.custom-scrollbar {
+  @apply overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-500 scrollbar-track-gray-300;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  @apply w-2;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-gray-500 rounded-full;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-gray-700;
+}
+
+/* Firefox support */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #6b7280 #d1d5db;
+}
+
+/* Global styles (e.g., in globals.css or component-specific CSS) */
+
+/* Custom light theme scrollbar */
+.light-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.light-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #a0aec0; /* Light gray for light theme */
+  border-radius: 4px;
+}
+
+.light-scrollbar::-webkit-scrollbar-track {
+  background-color: #edf2f7; /* Lighter gray for track */
+}
+
+/* Custom dark theme scrollbar */
+.dark-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #4a5568; /* Darker gray for dark theme */
+  border-radius: 4px;
+}
+
+.dark-scrollbar::-webkit-scrollbar-track {
+  background-color: #2d3748; /* Darker background for track */
+}
+
+/* Firefox scrollbar styles */
+.light-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a0aec0 #edf2f7; /* thumb color, track color */
+}
+
+.dark-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #4a5568 #2d3748; /* thumb color, track color */
+}

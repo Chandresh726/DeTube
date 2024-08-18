@@ -29,6 +29,7 @@ model User {
   comments      Comment[] // Users can comment on videos
   reactions     Reaction[] // Users can react to videos (like or dislike)
   wallets       Wallet[]
+  Transaction   Transaction[]
 }
 
 model Channel {
@@ -108,25 +109,27 @@ model Wallet {
 
 model Transaction {
   id            Int               @id @default(autoincrement())
+  userId        Int
   channelId     Int?
-  walletId      Int // The wallet that initiated the transaction
+  walletId      Int? // The wallet that initiated the transaction
   amount        BigInt
   type          TransactionType
   status        TransactionStatus @default(PENDING)
   signature     String? // Blockchain transaction signature
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+  user          User              @relation(fields: [userId], references: [id])
   channel       Channel?          @relation(fields: [channelId], references: [id])
-  wallet        Wallet            @relation(fields: [walletId], references: [id])
+  wallet        Wallet?           @relation(fields: [walletId], references: [id])
 
   @@index([channelId])
-  @@index([walletId])
+  @@index([userId])
 }
 
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
-  GIFT
+  THANKS
 }
 
 enum TransactionStatus {

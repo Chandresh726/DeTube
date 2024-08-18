@@ -63,6 +63,7 @@ export async function POST(req: NextRequest) {
                 }),
                 prisma.transaction.create({
                     data: {
+                        userId: wallet.userId,
                         walletId: wallet.id,
                         amount: amountBigInt, // Log amount using BigInt
                         type: 'WITHDRAWAL',
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
             // Log the failed transaction in the database
             await prisma.transaction.create({
                 data: {
+                    userId: wallet.userId,
                     walletId: wallet.id,
                     amount: amountBigInt, // Store BigInt directly in the database
                     type: 'WITHDRAWAL',

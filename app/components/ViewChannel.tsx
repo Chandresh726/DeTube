@@ -3,11 +3,12 @@ import React from 'react';
 import VideoCard from './video/VideoCard';
 import SubscribeButton from './button/SubscribeButton';
 import { useTheme } from './wrapper/ThemeContext';
+import ThanksButton from './button/ThanksBtn';
 
 const ViewChannel = ({ channelData }) => {
     const { theme } = useTheme();
     return (
-        <div className={`container mx-auto lg:px-16 ${theme==='dark'?'':'text-black'}`}>
+        <div className={`container mx-auto lg:px-16 ${theme === 'dark' ? '' : 'text-black'}`}>
             <div className='flex flex-wrap sm:flex-nowrap items-stretch justify-center'>
                 <div className='flex-shrink-0 p-4 w-1/2 md:w-1/3 lg:w-1/6'>
                     <Image
@@ -22,8 +23,11 @@ const ViewChannel = ({ channelData }) => {
                     <div>
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4">{channelData?.name}</h1>
                         <p className="text-lg text-gray-600 mt-2">{channelData?.stats.subscriberCount} subscribers</p>
-                        <div className='md:w-1/4 lg:w-1/5'>
-                            <SubscribeButton channelId={channelData?.id} />
+                        <div className='md:w-1/2 lg:w-1/3'>
+                            <div className='flex'>
+                                <SubscribeButton channelId={channelData?.id} />
+                                <ThanksButton channelId={channelData?.id} channelName={channelData?.name} />
+                            </div>
                         </div>
                     </div>
                 </div>

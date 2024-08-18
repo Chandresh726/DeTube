@@ -5,11 +5,12 @@ import VideoInfo from './VideoInfo';
 import CommentSection from './comment/CommentSection';
 import ChannelInfo from './ChannelInfo';
 import { useTheme } from '../wrapper/ThemeContext';
+import ThanksButton from '../button/ThanksBtn';
 
 const ViewVideo = ({ videoData }) => {
     const { theme } = useTheme();
     return (
-        <div className={`container mx-auto px-1 lg:px-16 ${theme==='dark'?'':'text-black'}`}>
+        <div className={`container mx-auto px-1 lg:px-16 ${theme === 'dark' ? '' : 'text-black'}`}>
             <div className="flex flex-col lg:flex-row">
                 <div className="flex-grow lg:w-3/4">
                     <div className="relative aspect-video rounded-md overflow-hidden">
@@ -23,9 +24,10 @@ const ViewVideo = ({ videoData }) => {
                     <VideoInfo data={videoData} />
                 </div>
                 <div className="lg:w-1/4 lg:pl-8 mt-4 lg:mt-0">
-                    <ChannelInfo channel={videoData.channel}/>
+                    <ChannelInfo channel={videoData.channel} />
                     <SubscribeButton channelId={videoData.channel.id} />
-                    <Reaction stats={videoData.stats} videoId={videoData.id}/>
+                    <ThanksButton channelId={videoData.channel.id} channelName={videoData.channel.name} />
+                    <Reaction stats={videoData.stats} videoId={videoData.id} />
                 </div>
             </div>
             <div className="divider my-4"></div>

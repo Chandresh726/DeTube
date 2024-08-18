@@ -8,6 +8,7 @@ const config: Config = {
   ],
   plugins: [
     require('daisyui'),
+    require('tailwind-scrollbar')({ nocompatible: true }),
   ],
   daisyui: {
     themes: ["light", "dark"],

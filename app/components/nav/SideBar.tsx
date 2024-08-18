@@ -37,10 +37,11 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
             ${isOpen ? 'w-full md:w-64' : 'w-0'} overflow-hidden flex flex-col`}
         >
             <div
-                className={`px-1 transition-opacity duration-200 ease-in-out 
+                className={`px-1 transition-opacity duration-200 ease-in-out flex-grow custom-scrollbar
+                ${theme === 'dark' ? 'dark-scrollbar' : 'light-scrollbar'}
                 ${isOpen ? 'opacity-100 delay-200' : 'opacity-0'}`}
             >
-                <ul className="menu flex-grow">
+                <ul className="menu">
                     <li>
                         <div className='text-lg'>
                             <GoHome className='w-6 h-6 mr-2' />
@@ -90,11 +91,11 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                         <div>
                             <div className="divider my-1"></div>
                             <div className='text-xl text-center'>Subscriptions</div>
-                            <ul className="menu mt-2">
+                            <ul className="menu mt-2 p-0">
                                 {subscriptions.map(sub => (
                                     <li key={sub.id} className="">
                                         <div className='text-lg'>
-                                            <img src={sub.image} alt={sub.name} className="w-10 h-10 mr-2 rounded-full" />
+                                            <img src={sub.image} alt={sub.name} className="w-8 h-8 mr-2 rounded-full" />
                                             <Link href={`/channel/${sub.id}`}>{sub.name}</Link>
                                         </div>
                                     </li>
