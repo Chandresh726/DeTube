@@ -76,7 +76,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                     <li>
                         <div className='text-lg'>
                             <GoHistory className='w-6 h-6 mr-2' />
-                            <Link href="/history">History</Link>
+                            <Link href="/statement">Your Transactions</Link>
                         </div>
                     </li>
                     {session &&

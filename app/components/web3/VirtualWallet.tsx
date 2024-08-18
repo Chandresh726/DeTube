@@ -8,7 +8,6 @@ import { IoMdArrowRoundDown, IoMdArrowRoundUp } from "react-icons/io";
 const VirtualWallet = ({ userId }) => {
     const router = useRouter();
     const [balance, setBalance] = useState<number>(0);
-    const [lockedBalance, setLockedBalance] = useState<number>(0);
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
     useEffect(() => {
@@ -16,7 +15,6 @@ const VirtualWallet = ({ userId }) => {
             try {
                 const res = await getUserBalance(userId);
                 setBalance(res.balance);
-                setLockedBalance(res.lockedBalance);
             } catch {
                 console.log("error");
             }
@@ -25,10 +23,13 @@ const VirtualWallet = ({ userId }) => {
     }, [userId]);
 
     return (
-        <div className={`px-2 py-1 ${isExpanded ? 'flex-none' : ''}`}>
+        <div className={`stat px-2 py-2 ${isExpanded ? 'flex-none' : ''}`}>
             <div className="divider my-1"></div>
             <div className='flex justify-between items-center mx-1'>
-                <p className="text-lg font-bold">Balance: {(balance / LAMPORTS_PER_SOL).toFixed(1)} Sol</p>
+                <div>
+                    <div className="stat-title">Current balance</div>
+                    <div className="stat-value">{(balance / LAMPORTS_PER_SOL).toFixed(1)} Sol</div>
+                </div>
                 <div
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="btn btn-ghost p-2"
@@ -38,17 +39,16 @@ const VirtualWallet = ({ userId }) => {
             </div>
             {isExpanded && (
                 <div className="mx-1">
-                    <div className='btn btn-ghost w-full text-lg' onClick={() => { router.push('/statement'); }}>View Transactions</div>
-                    <div className="flex justify-between my-2">
+                    <div className="flex justify-between my-2 stat-actions">
                         <button
                             onClick={() => { router.push('/deposit'); }}
-                            className="btn btn-info"
+                            className="btn btn-sm btn-info"
                         >
                             Deposit
                         </button>
                         <button
                             onClick={() => { router.push('/withdraw'); }}
-                            className="btn btn-success"
+                            className="btn btn-sm btn-success"
                             disabled={balance <= 0}
                         >
                             Withdraw

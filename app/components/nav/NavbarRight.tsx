@@ -4,14 +4,13 @@ import LogIn from '../button/LogInBtn';
 import Link from 'next/link';
 import { signOut } from 'next-auth/react';
 import ThemeToggle from '../button/ThemeBtn';
-import ConnectWallet from '../web3/ConnectWallet';
 
 const NavbarRight = ({ session }: { session: any }) => {
     if (session) {
         return (
             <div className="navbar-end">
                 <div className='hidden md:block'>
-                    <button className="btn btn-ghost mr-1 text-red-500"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
+                    <button className="btn btn-ghost text-red-500"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
                 </div>
                 <div className='mx-1'>
                     <ThemeToggle />
@@ -34,9 +33,6 @@ const NavbarRight = ({ session }: { session: any }) => {
                         <li><button onClick={() => signOut()}>Sign Out</button></li>
                     </ul>
                 </div>
-                {/* <div className='hiddeen lg:block'>
-                    <ConnectWallet />
-                </div> */}
             </div>
         );
     }

@@ -6,6 +6,7 @@ import CommentSection from './comment/CommentSection';
 import ChannelInfo from './ChannelInfo';
 import { useTheme } from '../wrapper/ThemeContext';
 import ThanksButton from '../button/ThanksBtn';
+import Supporters from './Supporters';
 
 const ViewVideo = ({ videoData }) => {
     const { theme } = useTheme();
@@ -28,6 +29,7 @@ const ViewVideo = ({ videoData }) => {
                     <SubscribeButton channelId={videoData.channel.id} />
                     <ThanksButton channelId={videoData.channel.id} channelName={videoData.channel.name} />
                     <Reaction stats={videoData.stats} videoId={videoData.id} />
+                    <Supporters videoId={videoData.id} />
                 </div>
             </div>
             <div className="divider my-4"></div>
