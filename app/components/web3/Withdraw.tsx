@@ -45,7 +45,7 @@ const Withdraw = ({ session }) => {
     
             if (res.success) {
                 alert('Withdrawal successful');
-                fetchBalanceFromBackend(session.user.id);
+                window.location.reload();
             } else {
                 alert(`Withdrawal failed: ${res.message}`);
             }

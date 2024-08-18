@@ -19,7 +19,7 @@ model User {
   email         String         @unique
   image         String?
   password      String?
-  balance       Int            @default(0)
+  balance       BigInt         @default(0)
   lockedBalance Int            @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -110,7 +110,7 @@ model Transaction {
   id            Int               @id @default(autoincrement())
   channelId     Int?
   walletId      Int // The wallet that initiated the transaction
-  amount        Int
+  amount        BigInt
   type          TransactionType
   status        TransactionStatus @default(PENDING)
   signature     String? // Blockchain transaction signature

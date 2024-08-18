@@ -64,6 +64,7 @@ const Deposit = ({ session }) => {
         } catch (error) {
             console.error('Deposit transaction failed', error);
         } finally {
+            fetchBalance(publicKey.toString());
             setLoading(false);
         }
     };

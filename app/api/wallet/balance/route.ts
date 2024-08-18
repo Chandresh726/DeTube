@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
         }
 
         const userBalance = {
-            balance: user.balance,
+            balance: user.balance.toString(),
             lockedBalance: user.lockedBalance,
         };
 

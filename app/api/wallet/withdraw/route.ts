@@ -11,6 +11,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Missing required parameters' }, { status: 400 });
         }
 
+        // Convert amount to BigInt to avoid mixing with Number types
+        const amountBigInt = BigInt(amount);
+
         // Fetch the user's wallet from the database
         const user = await prisma.user.findUnique({
             where: { id: userId },
@@ -27,7 +30,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, message: 'Wallet not found' }, { status: 404 });
         }
 
-        if (user.balance < amount) {
+        // Convert user's balance to BigInt for comparison
+        const userBalanceBigInt = BigInt(user.balance);
+
+        if (userBalanceBigInt < amountBigInt) {
             return NextResponse.json({ success: false, message: 'Insufficient balance' }, { status: 400 });
         }
 
@@ -39,7 +45,7 @@ export async function POST(req: NextRequest) {
         const sendSolInstruction = web3.SystemProgram.transfer({
             fromPubkey: centralWallet.publicKey,
             toPubkey: recipientPubKey,
-            lamports: amount,
+            lamports: Number(amountBigInt),  // Explicit conversion to Number for the Solana transfer
         });
         transaction.add(sendSolInstruction);
 
@@ -47,24 +53,24 @@ export async function POST(req: NextRequest) {
             // Send the transaction and wait for confirmation
             const signature = await web3.sendAndConfirmTransaction(connection, transaction, [centralWallet]);
 
-            // Update user's balance in the database
-            await prisma.user.update({
-                where: { id: userId },
-                data: {
-                    balance: user.balance - amount,
-                },
-            });
-
-            // Log the transaction in the database as SUCCESS
-            await prisma.transaction.create({
-                data: {
-                    walletId: wallet.id,
-                    amount,
-                    type: 'WITHDRAWAL',
-                    status: 'SUCCESS',
-                    signature,
-                },
-            });
+            // Use a database transaction to update the user's balance and log the transaction
+            await prisma.$transaction([
+                prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        balance: userBalanceBigInt - amountBigInt, // Update balance using BigInt
+                    },
+                }),
+                prisma.transaction.create({
+                    data: {
+                        walletId: wallet.id,
+                        amount: amountBigInt, // Log amount using BigInt
+                        type: 'WITHDRAWAL',
+                        status: 'SUCCESS',
+                        signature,
+                    },
+                }),
+            ]);
 
             return NextResponse.json({ success: true, message: 'Withdrawal successful', signature }, { status: 200 });
 
@@ -76,7 +82,7 @@ export async function POST(req: NextRequest) {
             await prisma.transaction.create({
                 data: {
                     walletId: wallet.id,
-                    amount,
+                    amount: amountBigInt, // Store BigInt directly in the database
                     type: 'WITHDRAWAL',
                     status: 'FAILED',
                     signature: null, // No signature since the transaction failed
