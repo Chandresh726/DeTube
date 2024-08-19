@@ -109,7 +109,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
             </div>
             {session &&
                 <div className="flex-none mt-auto">
-                    <VirtualWallet userId={session.user.id} />
+                    <VirtualWallet/>
                 </div>
             }
         </div>

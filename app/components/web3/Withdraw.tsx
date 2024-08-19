@@ -1,68 +1,51 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import ConnectWallet from './ConnectWallet';
 import { useTheme } from '../wrapper/ThemeContext';
-import { getUserBalance, withdrawRequest } from '../../util/fetch/wallet';
+import { withdrawRequest } from '../../util/fetch/wallet';
+import { useBalance } from '../../hooks/useBalance';
 
 const Withdraw = ({ session }) => {
     const { theme } = useTheme();
     const { publicKey, connected } = useWallet();
     const [walletVerified, setWalletVerified] = useState<boolean>(null);
-    const [balance, setBalance] = useState<number>(0);
+    const { balance, refreshBalance } = useBalance();
     const [amount, setAmount] = useState<string>("0.0");
     const [loading, setLoading] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (connected && publicKey) {
-            fetchBalanceFromBackend(session?.user.id);
-        } else {
-            setWalletVerified(null);
-        }
-    }, [connected, publicKey]);
-
-    const fetchBalanceFromBackend = async (userId: number) => {
-        try {
-            const response = await getUserBalance(userId);
-            if (response) {
-                setBalance(response.balance);
-            } else {
-                console.error('Failed to fetch balance');
-            }
-        } catch (error) {
-            console.error('Failed to fetch balance', error);
-        }
-    };
+    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [modalMessage, setModalMessage] = useState<string>('');
+    const [modalType, setModalType] = useState<'success' | 'failure'>('success');
 
     const handleWithdraw = async () => {
         if (!publicKey || !walletVerified || parseFloat(amount) <= 0) return;
-    
+
         setLoading(true);
         try {
             // Notify backend about the withdrawal
             const res = await withdrawRequest(publicKey.toString(), parseFloat(amount) * LAMPORTS_PER_SOL, session.user.id);
-    
             if (res.success) {
-                alert('Withdrawal successful');
-                window.location.reload();
+                refreshBalance();
+                setModalMessage('Your withdrawal was processed successfully.');
+                setModalType('success');
             } else {
-                alert(`Withdrawal failed: ${res.message}`);
+                setModalMessage(`Withdrawal failed: ${res.message}`);
+                setModalType('failure');
             }
         } catch (error) {
             console.error('Withdrawal transaction failed', error);
-            alert('An error occurred during the withdrawal process.');
+            setModalMessage('An error occurred during the withdrawal process.');
+            setModalType('failure');
         } finally {
+            setModalVisible(true);
             setLoading(false);
         }
     };
 
     const handleTextInputChange = (value: string) => {
-        // Allow empty string (for backspace) and partial valid inputs like "3."
         if (value === "" || /^\d*\.?\d*$/.test(value)) {
             const numericValue = parseFloat(value);
-    
-            // Check if the value exceeds the balance
             if (!isNaN(numericValue) && numericValue <= balance / LAMPORTS_PER_SOL) {
                 setAmount(value);
             } else if (isNaN(numericValue)) {
@@ -72,13 +55,10 @@ const Withdraw = ({ session }) => {
     };
 
     const handleBlur = () => {
-        // Ensure the value is a valid multiple of 0.1 and within the allowable range
         const numericValue = parseFloat(amount);
-        
         if (isNaN(numericValue) || numericValue < 0) {
-            setAmount("0.0"); // Reset to 0.0 if the value is invalid or empty
+            setAmount("0.0");
         } else {
-            // Round to nearest 0.1 multiple and ensure it doesn't exceed balance
             const roundedValue = Math.floor(numericValue * 10) / 10;
             const finalValue = Math.min(roundedValue, balance / LAMPORTS_PER_SOL);
             setAmount(finalValue.toFixed(1));
@@ -86,7 +66,6 @@ const Withdraw = ({ session }) => {
     };
 
     const handleRangeInputChange = (value: number) => {
-        // Convert from lamports to SOL
         const solValue = (value / LAMPORTS_PER_SOL).toFixed(1);
         setAmount(solValue);
     };
@@ -110,7 +89,7 @@ const Withdraw = ({ session }) => {
                         type="range"
                         min={0}
                         max={balance}
-                        step={LAMPORTS_PER_SOL / 10} // Step by 0.1 SOL in lamports
+                        step={LAMPORTS_PER_SOL / 10}
                         value={parseFloat(amount) * LAMPORTS_PER_SOL || 0}
                         onChange={(e) => handleRangeInputChange(parseFloat(e.target.value))}
                         className="range my-2"
@@ -125,6 +104,25 @@ const Withdraw = ({ session }) => {
                 </div>
             ) : (
                 <p className="text-md">Please connect and verify your wallet to withdraw.</p>
+            )}
+
+            {modalVisible && (
+                <dialog open className={`modal`}>
+                    <div className="modal-box">
+                        <form method="dialog">
+                            <button
+                                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                                onClick={() => setModalVisible(false)}
+                            >
+                                ✕
+                            </button>
+                        </form>
+                        <h3 className={`font-bold text-lg ${modalType === 'success' ? 'text-green-800' : 'text-red-800'}`}>
+                            {modalType === 'success' ? 'Success!' : 'Failure!'}
+                        </h3>
+                        <p className="py-4">{modalMessage}</p>
+                    </div>
+                </dialog>
             )}
         </div>
     );

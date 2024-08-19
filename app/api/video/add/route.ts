@@ -4,7 +4,6 @@ import prisma from '../../util/prisma';
 export async function POST(req: NextRequest) {
     try {
         const { channelId, videoId, title, description, thumbnail, video } = await req.json();
-        console.log(videoId)
         // Validate the required fields
         if (!channelId || !videoId || !title || !thumbnail || !video) {
             return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });

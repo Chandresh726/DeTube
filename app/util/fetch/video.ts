@@ -25,7 +25,6 @@ export const getHomeVideoData = async (page: number, limit: number) => {
             throw new Error('Failed to fetch video data');
         }
         const data = await response.json();
-        console.log('Fetched video data:', data);
         return data;
     } catch (error) {
         console.error('Error fetching video data:', error);

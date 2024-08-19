@@ -6,13 +6,15 @@ import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import ConnectWallet from './ConnectWallet';
 import { useTheme } from '../wrapper/ThemeContext';
 import { depositRequest } from '../../util/fetch/wallet';
+import { useBalance } from '../../hooks/useBalance';
 
 const Deposit = ({ session }) => {
     const { theme } = useTheme();
     const { publicKey, connected, sendTransaction } = useWallet();
     const { connection } = useConnection();
     const [walletVerified, setWalletVerified] = useState<boolean>(null);
-    const [balance, setBalance] = useState<number>(0);
+    const [walletBalance, setWalletBalance] = useState<number>(0);
+    const { refreshBalance } = useBalance();
     const [amount, setAmount] = useState<string>("0.0");
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -26,7 +28,7 @@ const Deposit = ({ session }) => {
         try {
             const publicKey = new web3.PublicKey(address);
             const balanceLamports = await connection.getBalance(publicKey);
-            setBalance(balanceLamports);
+            setWalletBalance(balanceLamports);
         } catch (error) {
             console.error('Failed to fetch balance', error);
         }
@@ -57,7 +59,8 @@ const Deposit = ({ session }) => {
             // Notify backend about the deposit
             const res = await depositRequest(publicKey.toString(), (parseFloat(amount) * LAMPORTS_PER_SOL), signature)
             if (res.success) {
-                window.location.reload();
+                refreshBalance();
+                // window.location.reload();
             } else {
                 alert('Deposit failed');
             }
@@ -75,7 +78,7 @@ const Deposit = ({ session }) => {
             const numericValue = parseFloat(value);
     
             // Check if the value exceeds the balance
-            if (!isNaN(numericValue) && numericValue <= balance / LAMPORTS_PER_SOL) {
+            if (!isNaN(numericValue) && numericValue <= walletBalance / LAMPORTS_PER_SOL) {
                 setAmount(value);
             } else if (isNaN(numericValue)) {
                 setAmount(value);
@@ -92,7 +95,7 @@ const Deposit = ({ session }) => {
         } else {
             // Round to nearest 0.1 multiple and ensure it doesn't exceed balance
             const roundedValue = Math.floor(numericValue * 10) / 10;
-            const finalValue = Math.min(roundedValue, balance / LAMPORTS_PER_SOL);
+            const finalValue = Math.min(roundedValue, walletBalance / LAMPORTS_PER_SOL);
             setAmount(finalValue.toFixed(1));
         }
     };
@@ -109,7 +112,7 @@ const Deposit = ({ session }) => {
             <div className="divider my-1"></div>
             {connected && walletVerified ? (
                 <div className='flex flex-col'>
-                    <p className="text-lg text-center font-medium my-4">Wallet Balance: ${(balance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                    <p className="text-lg text-center font-medium my-4">Wallet Balance: ${(walletBalance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
                     <input
                         type="text"
                         className='input input-bordered w-full my-2'
@@ -121,7 +124,7 @@ const Deposit = ({ session }) => {
                     <input
                         type="range"
                         min={0}
-                        max={balance}
+                        max={walletBalance}
                         step={LAMPORTS_PER_SOL / 10} // Step by 0.1 SOL in lamports
                         value={parseFloat(amount) * LAMPORTS_PER_SOL || 0}
                         onChange={(e) => handleRangeInputChange(parseFloat(e.target.value))}

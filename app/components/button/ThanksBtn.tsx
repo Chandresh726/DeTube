@@ -5,36 +5,17 @@ import { useRouter } from 'next/navigation';
 import { CiHeart } from "react-icons/ci";
 import { useTheme } from '../wrapper/ThemeContext';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { getUserBalance } from '../../util/fetch/wallet';
 import { sendThanks } from '../../util/fetch/channel';
+import { useBalance } from '../../hooks/useBalance';
 
 const ThanksButton = ({ channelId, channelName }) => {
     const { data: session } = useSession();
     const router = useRouter();
     const { theme } = useTheme();
-    const [balance, setBalance] = useState<number>(0);
+    const { balance, refreshBalance } = useBalance();
     const [amount, setAmount] = useState<string>("0");
     const [loading, setLoading] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (session?.user.id) {
-            fetchBalanceFromBackend(session.user.id);
-        }
-    }, [session]);
-
-    const fetchBalanceFromBackend = async (userId: number) => {
-        try {
-            const response = await getUserBalance(userId);
-            if (response) {
-                setBalance(response.balance);
-            } else {
-                console.error('Failed to fetch balance');
-            }
-        } catch (error) {
-            console.error('Failed to fetch balance', error);
-        }
-    };
 
     const handleRangeInputChange = (value: number) => {
         // Convert from lamports to SOL
@@ -56,6 +37,7 @@ const ThanksButton = ({ channelId, channelName }) => {
 
             if (res.success) {
                 setSuccess(true);
+                refreshBalance();
             } else {
                 alert(`Thanks failed: ${res.message}`);
             }

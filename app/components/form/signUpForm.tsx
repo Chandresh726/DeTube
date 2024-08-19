@@ -40,7 +40,6 @@ const SignupForm = () => {
 
       if (response.ok) {
         const data = await response.json();
-        console.log('User registered successfully:', data);
         signIn()
         // router.push('/login');
       } else {

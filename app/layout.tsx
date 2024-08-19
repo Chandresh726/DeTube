@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { ThemeProvider } from "./components/wrapper/ThemeContext";
 import { authOptions } from "./util/auth";
 import AppWalletProvider from "./components/AppWalletProvider";
+import { BalanceProvider } from "./hooks/useBalance";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -31,16 +32,17 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getServerSession(authOptions);
-
   return (
     <SessionWrapper>
       <AppWalletProvider>
         <ThemeProvider>
           <html lang="en">
             <body className={inter.className}>
-              <NavbarWrapper session={session}>
-                {children}
-              </NavbarWrapper>
+              <BalanceProvider session={session}>
+                <NavbarWrapper session={session}>
+                  {children}
+                </NavbarWrapper>
+              </BalanceProvider>
             </body>
           </html>
         </ThemeProvider>

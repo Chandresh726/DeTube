@@ -1,26 +1,14 @@
 "use client";
-import React, { useEffect, useState } from 'react';
-import { getUserBalance } from '../../util/fetch/wallet';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { IoMdArrowRoundDown, IoMdArrowRoundUp } from "react-icons/io";
+import { useBalance } from '../../hooks/useBalance';
 
-const VirtualWallet = ({ userId }) => {
+const VirtualWallet = () => {
     const router = useRouter();
-    const [balance, setBalance] = useState<number>(0);
+    const { balance } = useBalance();
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
-
-    useEffect(() => {
-        const getBalance = async () => {
-            try {
-                const res = await getUserBalance(userId);
-                setBalance(res.balance);
-            } catch {
-                console.log("error");
-            }
-        };
-        getBalance();
-    }, [userId]);
 
     return (
         <div className={`stat px-2 py-2 ${isExpanded ? 'flex-none' : ''}`}>
