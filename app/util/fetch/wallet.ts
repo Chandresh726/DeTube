@@ -6,6 +6,14 @@ export const getUserBalance = async (id: Number) => {
     return await response.json();
 }
 
+export const getUserStatement = async (id: Number) => {
+    const response = await fetch(`/api/wallet/statement?id=${id}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch balance data');
+    }
+    return await response.json();
+}
+
 export const verifyUserWallet = async (publicKey: String, signature: String, message: String, userId: Number) => {
     const response = await fetch('/api/wallet/verify', {
         method: 'POST',
