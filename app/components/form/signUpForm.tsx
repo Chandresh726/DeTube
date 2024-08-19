@@ -1,6 +1,5 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { signIn } from "next-auth/react"
 import { useTheme } from '../wrapper/ThemeContext';
 
@@ -13,8 +12,6 @@ const SignupForm = () => {
   const [isFormValid, setIsFormValid] = useState(false);
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-
-  const router = useRouter();
 
   useEffect(() => {
     setIsFormValid(
@@ -39,9 +36,7 @@ const SignupForm = () => {
       });
 
       if (response.ok) {
-        const data = await response.json();
         signIn()
-        // router.push('/login');
       } else {
         const error = await response.json();
         setErrorMessage(error.message);

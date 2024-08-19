@@ -72,9 +72,9 @@ export async function GET(req: NextRequest) {
         const topSupporters = supportersWithAmounts
             .sort((a, b) => {
                 // Convert BigInt to string for comparison
-                const amountA = a.amount.toString();
-                const amountB = b.amount.toString();
-                return amountA.localeCompare(amountB); // Sort in descending order
+                const amountA = Number(a.amount);
+                const amountB = Number(b.amount);
+                return amountB - amountA // Sort in descending order
             })
             .slice(0, 5);
 

@@ -60,7 +60,7 @@ interface BalanceProviderProps {
 
 // Provider component that supplies the balance context to its children
 export const BalanceProvider = ({ session, children }: BalanceProviderProps) => {
-  const id = session.user?.id;
+  const id = session?.user?.id;
   const balance = useProvideBalance(id);
   return (
     <BalanceContext.Provider value={balance}>
