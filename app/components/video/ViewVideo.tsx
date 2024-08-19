@@ -29,7 +29,7 @@ const ViewVideo = ({ videoData }) => {
                     <SubscribeButton channelId={videoData.channel.id} />
                     <ThanksButton channelId={videoData.channel.id} channelName={videoData.channel.name} />
                     <Reaction stats={videoData.stats} videoId={videoData.id} />
-                    <Supporters videoId={videoData.id} />
+                    <Supporters supporters={videoData.supporters} />
                 </div>
             </div>
             <div className="divider my-4"></div>

@@ -25,8 +25,8 @@ const ViewChannel = ({ channelData }) => {
                         <p className="text-lg text-gray-600 mt-2">{channelData?.stats.subscriberCount} subscribers</p>
                         <div className='md:w-1/2 lg:w-1/3'>
                             <div className='flex'>
-                                <SubscribeButton channelId={channelData?.id} />
-                                <ThanksButton channelId={channelData?.id} channelName={channelData?.name} />
+                                <div className='w-full mx-2'><SubscribeButton channelId={channelData?.id} /></div>
+                                <div className='w-full mx-2'><ThanksButton channelId={channelData?.id} channelName={channelData?.name} /></div>
                             </div>
                         </div>
                     </div>

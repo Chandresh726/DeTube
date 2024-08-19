@@ -36,7 +36,7 @@ const SubscribeButton = ({ channelId }) => {
     };
 
     return (
-        <div className={`flex flex-col mt-4 mx-2 items-center w-full rounded-3xl ${isSubscribed ? 'bg-slate-600' : ' bg-red-500 text-gray-800'}`}>
+        <div className={`flex flex-col mt-4 items-center w-full rounded-3xl ${isSubscribed ? 'bg-slate-600' : ' bg-red-500 text-gray-800'}`}>
             <button
                 onClick={handleSubscribe}
                 className={`py-2 rounded-lg font-semibold transition-colors duration-300 hover:opacity-75`}

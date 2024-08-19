@@ -13,7 +13,7 @@ const Deposit = ({ session }) => {
     const { connection } = useConnection();
     const [walletVerified, setWalletVerified] = useState<boolean>(null);
     const [balance, setBalance] = useState<number>(0);
-    const [amount, setAmount] = useState<string>("0");
+    const [amount, setAmount] = useState<string>("0.0");
     const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
@@ -70,19 +70,30 @@ const Deposit = ({ session }) => {
     };
 
     const handleTextInputChange = (value: string) => {
-        // Validate input to allow only numbers and decimals
-        if (/^\d*\.?\d*$/.test(value)) {
-            setAmount(value);
+        // Allow empty string (for backspace) and partial valid inputs like "3."
+        if (value === "" || /^\d*\.?\d*$/.test(value)) {
+            const numericValue = parseFloat(value);
+    
+            // Check if the value exceeds the balance
+            if (!isNaN(numericValue) && numericValue <= balance / LAMPORTS_PER_SOL) {
+                setAmount(value);
+            } else if (isNaN(numericValue)) {
+                setAmount(value);
+            }
         }
     };
 
     const handleBlur = () => {
-        // Round to the nearest 0.1 SOL on blur
+        // Ensure the value is a valid multiple of 0.1 and within the allowable range
         const numericValue = parseFloat(amount);
-        if (!isNaN(numericValue)) {
-            setAmount((Math.floor(numericValue * 10) / 10).toFixed(1));
+        
+        if (isNaN(numericValue) || numericValue < 0) {
+            setAmount("0.0"); // Reset to 0.0 if the value is invalid or empty
         } else {
-            setAmount("0");
+            // Round to nearest 0.1 multiple and ensure it doesn't exceed balance
+            const roundedValue = Math.floor(numericValue * 10) / 10;
+            const finalValue = Math.min(roundedValue, balance / LAMPORTS_PER_SOL);
+            setAmount(finalValue.toFixed(1));
         }
     };
 

@@ -73,7 +73,7 @@ const ThanksButton = ({ channelId, channelName }) => {
     };
 
     return (
-        <div className={`flex flex-col mt-4 mx-2 items-center w-full rounded-3xl bg-blue-400 ${theme === 'dark' ? '' : 'text-black'}`}>
+        <div className={`flex flex-col mt-4 items-center w-full rounded-3xl bg-blue-400 ${theme === 'dark' ? '' : 'text-black'}`}>
             <button
                 onClick={openModal}
                 className={`py-2 rounded-lg font-semibold transition-colors duration-300 hover:opacity-75`}

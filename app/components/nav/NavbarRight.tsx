@@ -28,8 +28,6 @@ const NavbarRight = ({ session }: { session: any }) => {
                     <ul
                         tabIndex={0}
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-40 p-2 shadow">
-                        <li><Link href="/profile">Profile</Link></li>
-                        <li><Link href="/settings">Settings</Link></li>
                         <li><button onClick={() => signOut()}>Sign Out</button></li>
                     </ul>
                 </div>

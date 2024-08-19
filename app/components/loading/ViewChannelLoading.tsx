@@ -10,9 +10,14 @@ const ViewChannelLoading = () => {
                 </div>
                 <div className='flex-grow px-4 md:p-4 flex flex-col justify-between'>
                     <div>
-                        <div className="mt-4 skeleton h-8 w-64"></div>
-                        <div className="mt-2 skeleton h-8 w-64"></div>
-                        <div className="mt-2 skeleton h-12 md:w-1/4 lg:w-1/5"></div>
+                        <div className="my-4 skeleton h-12 w-64"></div>
+                        <div className="my-2 skeleton h-4 w-64"></div>
+                        <div className='md:w-1/2 lg:w-1/3'>
+                            <div className='flex'>
+                                <div className="my-2 skeleton h-8 w-64"></div>
+                                <div className="my-2 skeleton h-8 w-64"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -22,9 +27,9 @@ const ViewChannelLoading = () => {
             </div>
             <div className="divider my-1"></div>
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <VideoCardLoading/>
-                <VideoCardLoading/>
-                <VideoCardLoading/>
+                <VideoCardLoading />
+                <VideoCardLoading />
+                <VideoCardLoading />
             </div>
         </div>
     )
