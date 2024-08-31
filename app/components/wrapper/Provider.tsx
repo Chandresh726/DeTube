@@ -1,7 +1,7 @@
 import React from 'react'
-import SessionWrapper from './wrapper/SessionWrapper';
+import SessionWrapper from './SessionWrapper';
 import AppWalletProvider from './AppWalletProvider';
-import { ThemeProvider } from './wrapper/ThemeContext';
+import { ThemeProvider } from './ThemeContext';
 
 const Provider = ({
     children,

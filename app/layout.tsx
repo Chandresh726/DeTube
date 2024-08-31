@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import dynamic from "next/dynamic";
 import { authOptions } from "./util/auth";
 import { BalanceProvider } from "./hooks/useBalance";
-import Provider from "./components/Provider";
+import Provider from "./components/wrapper/Provider";
 
 const inter = Inter({ subsets: ["latin"] });
 

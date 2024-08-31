@@ -6,7 +6,7 @@ const ViewChannelLoading = () => {
         <div className="container mx-auto lg:px-16">
             <div className='flex flex-wrap sm:flex-nowrap items-stretch justify-center'>
                 <div className='flex-shrink-0 p-4 w-1/2 md:w-1/3 lg:w-1/6'>
-                    <div className="skeleton h-full w-full rounded-full"></div>
+                    <div className="skeleton h-32 md:h-full w-full rounded-full"></div>
                 </div>
                 <div className='flex-grow px-4 md:p-4 flex flex-col justify-between'>
                     <div>
@@ -14,8 +14,8 @@ const ViewChannelLoading = () => {
                         <div className="my-2 skeleton h-4 w-64"></div>
                         <div className='md:w-1/2 lg:w-1/3'>
                             <div className='flex'>
-                                <div className="my-2 skeleton h-8 w-64"></div>
-                                <div className="my-2 skeleton h-8 w-64"></div>
+                                <div className="m-2 skeleton h-8 w-1/2 md:w-64"></div>
+                                <div className="m-2 skeleton h-8 w-1/2 md:w-64"></div>
                             </div>
                         </div>
                     </div>
