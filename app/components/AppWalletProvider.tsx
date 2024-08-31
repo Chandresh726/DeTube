@@ -18,13 +18,9 @@ export default function AppWalletProvider({
     const network = WalletAdapterNetwork.Devnet;
     const endpoint = useMemo(() => clusterApiUrl(network), [network]);
     const wallets = useMemo(
-        () => [
-            // manually add any legacy wallet adapters here
-            // new UnsafeBurnerWalletAdapter(),
-        ],
+        () => [],
         [network],
     );
-
     return (
         <ConnectionProvider endpoint={endpoint}>
             <WalletProvider wallets={wallets} autoConnect>
