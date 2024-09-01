@@ -76,7 +76,7 @@ const Withdraw = ({ session }) => {
             <div className="divider my-1"></div>
             {connected && walletVerified ? (
                 <div className='flex flex-col'>
-                    <p className="text-lg text-center font-medium my-4">Available Balance: {(balance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                    <p className="text-lg text-center font-medium my-4">Available Balance: {(balance / LAMPORTS_PER_SOL).toFixed(2)} YTSol</p>
                     <input
                         type="text"
                         className='input input-bordered w-full my-2'
@@ -99,7 +99,7 @@ const Withdraw = ({ session }) => {
                         onClick={handleWithdraw}
                         disabled={loading || parseFloat(amount) <= 0}
                     >
-                        {loading ? 'Processing...' : `Withdraw ${amount} SOL`}
+                        {loading ? 'Processing...' : `Withdraw ${amount} YTSol`}
                     </button>
                 </div>
             ) : (

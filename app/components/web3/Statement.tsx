@@ -24,7 +24,7 @@ const Statement = ({ session }) => {
         }
     }, [session]);
 
-    if (!statement) return <StatementLoading/>
+    if (!statement) return <StatementLoading />
 
     // Format the date to a readable format
     const formatDate = (dateString) => {
@@ -46,7 +46,7 @@ const Statement = ({ session }) => {
     // Format the amount
     const formatAmount = (amountString) => {
         const amount = Number(amountString) / LAMPORTS_PER_SOL;
-        return amount.toFixed(1) + ' Sol';
+        return amount.toFixed(1);
     }
 
     // Truncate long text with tooltip
@@ -94,14 +94,14 @@ const Statement = ({ session }) => {
                                         <td className="hidden lg:table-cell">
                                             <TruncatedText text={transaction.wallet.address} />
                                         </td>
-                                        <td>{formatAmount(transaction.amount)}</td>
+                                        <td>{formatAmount(transaction.amount)} Sol</td>
                                         <td className="hidden lg:table-cell">
                                             <div className='flex'>
                                                 <TruncatedText text={transaction.signature} />
-                                                <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />
+                                                {transaction.signature && <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />}
                                             </div>
                                         </td>
-                                        <td>{transaction.status}</td>
+                                        <td className={transaction.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}>{transaction.status}</td>
                                     </tr>
                                 ))
                             ) : (
@@ -138,14 +138,14 @@ const Statement = ({ session }) => {
                                         <td className="hidden lg:table-cell">
                                             <TruncatedText text={transaction.wallet.address} />
                                         </td>
-                                        <td>{formatAmount(transaction.amount)}</td>
+                                        <td>{formatAmount(transaction.amount)} Sol</td>
                                         <td className="hidden lg:table-cell">
                                             <div className='flex'>
                                                 <TruncatedText text={transaction.signature} />
-                                                <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />
+                                                {transaction.signature && <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />}
                                             </div>
                                         </td>
-                                        <td>{transaction.status}</td>
+                                        <td className={transaction.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}>{transaction.status}</td>
                                     </tr>
                                 ))
                             ) : (
@@ -178,12 +178,12 @@ const Statement = ({ session }) => {
                                 statement.THANKS.map((transaction, index) => (
                                     <tr key={index}>
                                         <td>{formatDate(transaction.createdAt)}</td>
-                                        <td>{formatAmount(transaction.amount)}</td>
+                                        <td>{formatAmount(transaction.amount)} YTSol</td>
                                         <td>
-                                            {transaction.channel.name}
-                                            <VisitLink href={`/channel/${transaction.channel.id}`} />
+                                            {transaction.channel?.name}
+                                            {transaction.channel?.name && <VisitLink href={`/channel/${transaction.channel.id}`} />}
                                         </td>
-                                        <td>{transaction.status}</td>
+                                        <td className={transaction.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}>{transaction.status}</td>
                                     </tr>
                                 ))
                             ) : (

@@ -11,14 +11,14 @@ const Supporters = ({ supporters }) => {
                 <tbody>
                     {supporters.map((user, index) => (
                         <tr key={user.id}>
-                            <td className='font-bold px-2'>{index + 1}</td>
+                            <td className='font-bold px-1'>{index + 1}</td>
                             <td>
                                 <div className='flex items-center'>
                                     <img src={user.image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt={user.name} className="w-6 h-6 mr-2 rounded-full" />
                                     {(user.name).split(" ")[0]}
                                 </div>
                             </td>
-                            <td className='font-bold px-2'>{(Number(user.amount) / LAMPORTS_PER_SOL).toFixed(1)} Sol</td>
+                            <td className='text-sm font-bold px-1'>{(Number(user.amount) / LAMPORTS_PER_SOL).toFixed(1)} YTSol</td>
                         </tr>
                     ))}
                 </tbody>

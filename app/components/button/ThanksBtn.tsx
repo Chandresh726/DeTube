@@ -79,12 +79,12 @@ const ThanksButton = ({ channelId, channelName }) => {
                         <div className="divider my-1"></div>
                         {success ? (
                             <div className='my-4 text-center'>
-                                <p className="text-2xl text-center text-green-500 font-medium my-4">Sent {amount} SOL successfully!</p>
+                                <p className="text-2xl text-center text-green-500 font-medium my-4">Sent {amount} YTSol successfully!</p>
                                 <button className='btn btn-info' onClick={() => { setSuccess(false) }}>Send Again</button>
                             </div>
                         ) : (
                             <div className='flex flex-col'>
-                                <p className="text-lg text-center font-medium my-4">Available Balance: {(balance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                                <p className="text-lg text-center font-medium my-4">Available Balance: {(balance / LAMPORTS_PER_SOL).toFixed(2)} YTSol</p>
                                 <input
                                     type="range"
                                     min={0}
@@ -111,7 +111,7 @@ const ThanksButton = ({ channelId, channelName }) => {
                                             strokeWidth="2"
                                             d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                     </svg>
-                                    {loading ? 'Processing...' : `Send ${amount} SOL`}
+                                    {loading ? 'Processing...' : `Send ${amount} YTSol`}
                                 </button>
                             </div>
                         )}

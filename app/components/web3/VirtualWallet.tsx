@@ -16,7 +16,7 @@ const VirtualWallet = () => {
             <div className='flex justify-between items-center mx-1'>
                 <div>
                     <div className="stat-title">Current balance</div>
-                    <div className="stat-value">{(balance / LAMPORTS_PER_SOL).toFixed(1)} Sol</div>
+                    <div className="stat-value">{(balance / LAMPORTS_PER_SOL).toFixed(1)} YTSol</div>
                 </div>
                 <div
                     onClick={() => setIsExpanded(!isExpanded)}
