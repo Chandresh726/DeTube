@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { GoHome, GoHistory } from "react-icons/go";
 import { MdOutlineSubscriptions } from "react-icons/md";
 import { GrChannel, GrUpload } from "react-icons/gr";
+import { TbMoneybag } from "react-icons/tb";
 import { BiLike } from "react-icons/bi";
 import { useTheme } from '../wrapper/ThemeContext';
 import VirtualWallet from '../web3/VirtualWallet';
@@ -57,22 +58,6 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                         </li>
                     }
                     <div className="divider my-1"></div>
-                    {session?.user.channelId &&
-                        <li>
-                            <div className='text-lg'>
-                                <GrChannel className='w-6 h-6 mr-2' />
-                                <Link href={"/channel/" + session.user.channelId}>Your Channel</Link>
-                            </div>
-                        </li>
-                    }
-                    {session?.user.channelId &&
-                        <li>
-                            <div className='text-lg md:hidden'>
-                                <GrUpload className='w-6 h-6 mr-2' />
-                                <Link href={"/uploadVideo"}>Upload Video</Link>
-                            </div>
-                        </li>
-                    }
                     {session &&
                         <li>
                             <div className='text-lg'>
@@ -86,6 +71,30 @@ const SideBar: React.FC<SidebarProps> = ({ session, isOpen, subscriptions }) => 
                             <div className='text-lg'>
                                 <BiLike className='w-6 h-6 mr-2' />
                                 <Link href="/liked">Liked Videos</Link>
+                            </div>
+                        </li>
+                    }
+                    {session?.user.channelId &&
+                        <li>
+                            <div className='text-lg'>
+                                <GrChannel className='w-6 h-6 mr-2' />
+                                <Link href={"/channel/" + session.user.channelId}>Your Channel</Link>
+                            </div>
+                        </li>
+                    }
+                    {session?.user.channelId &&
+                        <li>
+                            <div className='text-lg'>
+                                <TbMoneybag  className='w-6 h-6 mr-2' />
+                                <Link href="/earnings">Your Earnings</Link>
+                            </div>
+                        </li>
+                    }
+                    {session?.user.channelId &&
+                        <li>
+                            <div className='text-lg md:hidden'>
+                                <GrUpload className='w-6 h-6 mr-2' />
+                                <Link href={"/uploadVideo"}>Upload Video</Link>
                             </div>
                         </li>
                     }
