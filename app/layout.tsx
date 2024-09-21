@@ -10,7 +10,7 @@ import Provider from "./components/wrapper/Provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Youtube 3.0",
+  title: "DeTube",
   icons: {
     icon: "logo.png",
   },

@@ -10,9 +10,9 @@ const NavbarRight = ({ session }: { session: any }) => {
         return (
             <div className="navbar-end">
                 <div className='hidden md:block'>
-                    <button className="btn btn-ghost text-red-500"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
+                    <button className="btn btn-ghost text-red-500 p-1"><Link href="/uploadVideo"><MdUpload className='w-7 h-7' /></Link></button>
                 </div>
-                <div className='mx-1'>
+                <div className=''>
                     <ThemeToggle />
                 </div>
                 <div className='mr-2'>{session.user?.name?.split(" ")[0]}</div>
@@ -28,6 +28,7 @@ const NavbarRight = ({ session }: { session: any }) => {
                     <ul
                         tabIndex={0}
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-40 p-2 shadow">
+                        <li><button>Settings</button></li>
                         <li><button onClick={() => signOut()}>Sign Out</button></li>
                     </ul>
                 </div>
@@ -37,7 +38,7 @@ const NavbarRight = ({ session }: { session: any }) => {
 
     return (
         <div className="navbar-end">
-            <div className='mx-1'>
+            <div className=''>
                 <ThemeToggle />
             </div>
             <LogIn />
