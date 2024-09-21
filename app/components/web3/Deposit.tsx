@@ -7,6 +7,9 @@ import ConnectWallet from './ConnectWallet';
 import { useTheme } from '../wrapper/ThemeContext';
 import { depositRequest } from '../../util/fetch/wallet';
 import { useBalance } from '../../hooks/useBalance';
+import { Player } from '@lottiefiles/react-lottie-player';
+import successAnimation from '../../../public/successAnimation.json';
+import failureAnimation from '../../../public/failureAnimation.json';
 
 const Deposit = ({ session }) => {
     const { theme } = useTheme();
@@ -80,6 +83,7 @@ const Deposit = ({ session }) => {
             fetchBalance(publicKey.toString());
             setModalVisible(true);
             setLoading(false);
+            setAmount("0.0");
         }
     };
 
@@ -170,6 +174,12 @@ const Deposit = ({ session }) => {
                         <h3 className={`font-bold text-lg ${modalType === 'success' ? 'text-green-800' : 'text-red-800'}`}>
                             {modalType === 'success' ? 'Success!' : 'Failure!'}
                         </h3>
+                        <Player
+                            autoplay
+                            loop={true}
+                            src={modalType === 'success' ? successAnimation : failureAnimation}
+                            style={{ height: '200px', width: '200px' }}
+                        />
                         <p className="py-4">{modalMessage}</p>
                     </div>
                 </dialog>

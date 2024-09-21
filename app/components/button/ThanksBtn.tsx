@@ -7,6 +7,8 @@ import { useTheme } from '../wrapper/ThemeContext';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { sendThanks } from '../../util/fetch/channel';
 import { useBalance } from '../../hooks/useBalance';
+import { Player } from '@lottiefiles/react-lottie-player';
+import successAnimation from '../../../public/successAnimation.json';
 
 const ThanksButton = ({ channelId, channelName }) => {
     const { data: session } = useSession();
@@ -80,6 +82,12 @@ const ThanksButton = ({ channelId, channelName }) => {
                         {success ? (
                             <div className='my-4 text-center'>
                                 <p className="text-2xl text-center text-green-500 font-medium my-4">Sent {amount} YTSol successfully!</p>
+                                <Player
+                                    autoplay
+                                    loop={true}
+                                    src={successAnimation}
+                                    style={{ height: '200px', width: '200px' }}
+                                />
                                 <button className='btn btn-info' onClick={() => { setSuccess(false) }}>Send Again</button>
                             </div>
                         ) : (

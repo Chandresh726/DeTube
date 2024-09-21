@@ -93,3 +93,7 @@ body {
 .modal {
   border: none;
 }
+
+.blur-background {
+  filter: blur(4px);
+}
