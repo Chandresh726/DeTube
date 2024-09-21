@@ -20,7 +20,7 @@ const Navbar: React.FC<NavbarProps> = ({ session, onToggleSidebar }) => {
                     </svg>
                 </button>
                 <a className="px-2 md:px-4 btn btn-ghost text-md md:text-xl" href='/'>
-                    <img src="logo.png" width={26} height={26} />
+                    <img src="/logo.png" width={26} height={26} />
                     DeTube
                 </a>
             </div>
