@@ -6,6 +6,8 @@ import dynamic from "next/dynamic";
 import { authOptions } from "./util/auth";
 import { BalanceProvider } from "./hooks/useBalance";
 import Provider from "./components/wrapper/Provider";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +38,8 @@ export default async function RootLayout({
           <BalanceProvider session={session}>
             <NavbarWrapper session={session}>
               {children}
+              <SpeedInsights />
+              <Analytics />
             </NavbarWrapper>
           </BalanceProvider>
         </body>
