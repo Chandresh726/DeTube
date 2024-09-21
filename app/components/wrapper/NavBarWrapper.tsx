@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '../nav/Navbar';
 import SideBar from '../nav/SideBar';
-import { usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation';
 import { getSubscriptionsData } from '../../util/fetch/subscription';
 
 interface NavBarWrapperProps {
@@ -18,26 +18,27 @@ interface Subscription {
 
 const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
-    const getInitialSidebarState = () => {
-        if (window.innerWidth >= 1024) {
-            return true;
-        }
-        return false;
-    };
-    const [isSidebarOpen, setSidebarOpen] = useState(getInitialSidebarState);
+    const [sidebarState, setSidebarState] = useState<'full' | 'icons' | 'closed'>('full');
     const pathname = usePathname();
 
+    // Load the sidebar state from localStorage on mount
+    useEffect(() => {
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState) {
+            setSidebarState(savedState as 'full' | 'icons' | 'closed');
+        }
+    }, []);
+
     const handleResize = () => {
-        if (window.innerWidth >= 1024) { // Tailwind's 'lg' breakpoint is 1024px
-            setSidebarOpen(true);
+        if (window.innerWidth >= 1024) { // Tailwind's 'lg' breakpoint
+            setSidebarState('full');
         } else {
-            setSidebarOpen(false);
+            setSidebarState('closed');
         }
     };
 
     useEffect(() => {
         if (session?.user.id) {
-            // Fetch the user's subscriptions
             fetchSubscriptions(session.user.id);
         }
     }, [session]);
@@ -52,9 +53,14 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     };
 
     useEffect(() => {
-        handleResize(); // Set initial state based on current window size
+        const savedState = localStorage.getItem('sidebarState');
+        if (savedState) {
+            setSidebarState(savedState as 'full' | 'icons' | 'closed');
+        } else {
+            handleResize();
+        }
         if (pathname === '/logIn' || pathname === '/signUp') {
-            setSidebarOpen(false);
+            setSidebarState('closed');
         }
         window.addEventListener('resize', handleResize);
         return () => {
@@ -63,15 +69,27 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     }, [pathname]);
 
     const handleToggleSidebar = () => {
-        setSidebarOpen(!isSidebarOpen);
+        setSidebarState(prevState => {
+            const newState = window.innerWidth >= 1024
+                ? (prevState === 'full' ? 'icons' : 'full')
+                : (prevState === 'closed' ? 'full' : 'closed');
+            
+            // Save the new sidebar state to localStorage
+            localStorage.setItem('sidebarState', newState);
+            
+            return newState;
+        });
     };
 
     return (
         <div>
             <Navbar session={session} onToggleSidebar={handleToggleSidebar} />
             <div className="flex pt-16">
-                <SideBar session={session} isOpen={isSidebarOpen} subscriptions={subscriptions} />
-                <div className={`flex-grow transition-margin duration-200 ease-in-out ${isSidebarOpen ? 'md:ml-64' : 'ml-0 lg:px-20'}`}>
+                <SideBar session={session} sidebarState={sidebarState} subscriptions={subscriptions} />
+                <div className={`flex-grow transition-margin duration-200 ease-in-out ${
+                    sidebarState === 'full' ? 'md:ml-64' : 
+                    sidebarState === 'icons' ? 'md:ml-16' : 'ml-0 lg:px-20'
+                }`}>
                     <main className="p-4">
                         {children}
                     </main>
