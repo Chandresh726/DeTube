@@ -1,5 +1,5 @@
 {
-  "name": "next-youtube",
+  "name": "detube",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,18 +10,29 @@
     "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@lottiefiles/react-lottie-player": "^3.5.4",
     "@prisma/client": "^5.17.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.95.2",
     "aws-sdk": "^2.1665.0",
     "bcryptjs": "^2.4.3",
+    "dialog-polyfill": "^0.5.6",
     "next": "14.2.5",
     "next-auth": "^4.24.7",
     "react": "^18",
     "react-dom": "^18",
     "react-icons": "^5.2.1",
+    "react-lottie-player": "^2.1.0",
+    "tailwind-scrollbar": "^3.1.0",
+    "tweetnacl": "^1.0.3",
     "uuid": "^10.0.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/bs58": "^4.0.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

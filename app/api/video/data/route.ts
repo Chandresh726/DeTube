@@ -43,6 +43,41 @@ export async function GET(req: NextRequest) {
             },
         });
 
+        // Fetch supporters who have sent SOL with transaction type 'THANKS'
+        const supporters = await prisma.transaction.findMany({
+            where: {
+                channelId: video.channelId,
+                type: 'THANKS',
+                status: 'SUCCESS',
+            },
+            include: {
+                user: true,
+            },
+        });
+
+        // Aggregate total amount sent by each supporter
+        const supportersWithAmounts = supporters.reduce((acc, transaction) => {
+            const existing = acc.find(s => s.user.id === transaction.userId);
+            if (existing) {
+                existing.amount += transaction.amount;
+            } else {
+                acc.push({
+                    user: transaction.user,
+                    amount: transaction.amount,
+                });
+            }
+            return acc;
+        }, []);
+
+        const topSupporters = supportersWithAmounts
+            .sort((a, b) => {
+                // Convert BigInt to string for comparison
+                const amountA = Number(a.amount);
+                const amountB = Number(b.amount);
+                return amountB - amountA // Sort in descending order
+            })
+            .slice(0, 5);
+
         const videoWithStats = {
             id: video.id,
             title: video.title,
@@ -60,7 +95,13 @@ export async function GET(req: NextRequest) {
             stats: {
                 likeCount,
                 dislikeCount,
-            }
+            },
+            supporters: topSupporters.map(supporter => ({
+                id: supporter.user.id,
+                name: supporter.user.name,
+                image: supporter.user.image,
+                amount: supporter.amount.toString(), // Convert BigInt to string
+            })),
         };
 
         return NextResponse.json(videoWithStats, { status: 200 });

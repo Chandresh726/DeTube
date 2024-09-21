@@ -16,3 +16,19 @@ export const getChannelData = async (id: Number) => {
     }
     return await response.json();
 }
+
+export const sendThanks = async (amount: Number, userId: Number, channelId: Number) => {
+    const response = await fetch('/api/channel/thanks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            channelId,
+            userId,
+            amount
+        }),
+    });
+    if (!response.ok) {
+        throw new Error('Failed');
+    }
+    return await response.json();
+}

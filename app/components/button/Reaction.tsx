@@ -4,6 +4,7 @@ import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiOutlineDislike } from 'react-icons/ai';
 import { reactToVideo } from '../../util/fetch/reaction';
 import { useTheme } from '../wrapper/ThemeContext';
+import { useRouter } from 'next/navigation';
 
 const Reaction = ({ stats, videoId }) => {
     const { theme } = useTheme();
@@ -13,6 +14,7 @@ const Reaction = ({ stats, videoId }) => {
     const [isLiked, setIsLiked] = useState(false);
     const [isDisliked, setIsDisliked] = useState(false);
     const userId = session?.user?.id;
+    const router = useRouter();
 
     // Fetch initial reaction status
     useEffect(() => {
@@ -30,7 +32,10 @@ const Reaction = ({ stats, videoId }) => {
     }, [userId, videoId]);
 
     const handleLike = async () => {
-        if (!userId) return;
+        if (!userId) {
+            router.push('/logIn');
+            return;
+        }
 
         let status;
         if (isLiked) {
@@ -50,7 +55,10 @@ const Reaction = ({ stats, videoId }) => {
     };
 
     const handleDislike = async () => {
-        if (!userId) return;
+        if (!userId) {
+            router.push('/logIn');
+            return;
+        }
 
         let status;
         if (isDisliked) {
@@ -70,10 +78,10 @@ const Reaction = ({ stats, videoId }) => {
     };
 
     return (
-        <div className={`my-4 w-full p-2 rounded-3xl flex items-center space-x-4 ${theme==='dark'?'bg-gray-800':'bg-gray-500'}`}>
+        <div className={`my-4 w-full p-2 rounded-3xl flex items-center space-x-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-500'}`}>
             <div
                 className={`flex flex-col items-center justify-center w-1/2 cursor-pointer ${isLiked ? 'text-green-500' : 'text-white'} hover:text-green-500 ${!userId && 'cursor-not-allowed'}`}
-                onClick={userId ? handleLike : null}
+                onClick={handleLike}
             >
                 <AiOutlineLike size={28} className={`${isLiked ? 'text-green-500' : ''}`} />
                 <span className="mt-1 text-xs">{likes} Likes</span>
@@ -81,7 +89,7 @@ const Reaction = ({ stats, videoId }) => {
             <div className="divider divider-horizontal"></div>
             <div
                 className={`flex flex-col items-center justify-center w-1/2 cursor-pointer ${isDisliked ? 'text-red-500' : 'text-white'} hover:text-red-500 ${!userId && 'cursor-not-allowed'}`}
-                onClick={userId ? handleDislike : null}
+                onClick={handleDislike}
             >
                 <AiOutlineDislike size={28} className={`${isDisliked ? 'text-red-500' : ''}`} />
                 <span className="mt-1 text-xs">{dislikes} Dislikes</span>

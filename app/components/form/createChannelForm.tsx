@@ -59,7 +59,6 @@ const CreateChannelForm = ({ userId }: { userId: Number }) => {
     let redirectPath = "/"
     try {
       const response = await createChannel(userId, channelName, description, logo);
-      console.log('channel res', response);
       if (response && response.channelId) {
         redirectPath = '/channel/' + response.channelId
         update({ channelId: response.channelId });

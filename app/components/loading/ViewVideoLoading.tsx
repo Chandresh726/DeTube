@@ -23,12 +23,13 @@ const ViewVideoLoading = () => {
                     <div className="flex items-center">
                         <div className="skeleton h-24 w-24 my-2 shrink-0 rounded-full"></div>
                         <div className="ml-4">
-                            <div className="skeleton h-6 w-16 my-2"></div>
-                            <div className="skeleton h-6 w-16 my-2"></div>
+                            <div className="skeleton h-6 w-24 my-2"></div>
+                            <div className="skeleton h-6 w-24 my-2"></div>
                         </div>
                     </div>
                     <div className="skeleton h-8 w-full rounded-3xl my-4"></div>
-                    <div className="skeleton h-8 w-full rounded-3xl"></div>
+                    <div className="skeleton h-8 w-full rounded-3xl my-4"></div>
+                    <div className="skeleton h-16 w-full rounded-3xl my-4"></div>
                 </div>
             </div>
         </div>

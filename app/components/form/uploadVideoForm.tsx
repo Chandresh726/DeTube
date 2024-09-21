@@ -93,7 +93,6 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
         let redirectPath = "/"
         try {
             const response = await createVideo(channelId, videoId, title, description, thumbnail, video);
-            console.log('create video res', response);
             if (response && response.videoId) {
                 redirectPath = '/video/' + response.videoId
                 setLoadingFlag(false)
