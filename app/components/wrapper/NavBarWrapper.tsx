@@ -22,12 +22,12 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     const pathname = usePathname();
 
     // Load the sidebar state from localStorage on mount
-    useEffect(() => {
-        const savedState = localStorage.getItem('sidebarState');
-        if (savedState) {
-            setSidebarState(savedState as 'full' | 'icons' | 'closed');
-        }
-    }, []);
+    // useEffect(() => {
+    //     const savedState = localStorage.getItem('sidebarState');
+    //     if (savedState) {
+    //         setSidebarState(savedState as 'full' | 'icons' | 'closed');
+    //     }
+    // }, []);
 
     const handleResize = () => {
         if (window.innerWidth >= 1024) { // Tailwind's 'lg' breakpoint
