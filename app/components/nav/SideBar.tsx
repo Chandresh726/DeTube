@@ -41,20 +41,20 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
                 ${sidebarState !== 'closed' ? 'opacity-100 delay-200' : 'opacity-0'}`}
             >
                 <ul className={`menu text-lg ${sidebarState === 'icons' ? 'p-1' : ''}`}>
-                    <SidebarItem icon={<GoHome className='w-6 h-6' />} text="Home" link="/" sidebarState={sidebarState} />
+                    <SidebarItem icon={<GoHome className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Home" link="/" sidebarState={sidebarState} />
                     {session && (
                         <>
-                            <SidebarItem icon={<MdOutlineSubscriptions className='w-6 h-6' />} text="Subscription" link="/subscription" sidebarState={sidebarState} />
+                            <SidebarItem icon={<MdOutlineSubscriptions className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Subscription" link="/subscription" sidebarState={sidebarState} />
                             <div className="divider my-1"></div>
-                            <SidebarItem icon={<GoHistory className='w-6 h-6' />} text="Your Transactions" link="/statement" sidebarState={sidebarState} />
-                            <SidebarItem icon={<BiLike className='w-6 h-6' />} text="Liked Videos" link="/liked" sidebarState={sidebarState} />
+                            <SidebarItem icon={<GoHistory className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Your Transactions" link="/statement" sidebarState={sidebarState} />
+                            <SidebarItem icon={<BiLike className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Liked Videos" link="/liked" sidebarState={sidebarState} />
                         </>
                     )}
                     {session?.user.channelId && (
                         <>
-                            <SidebarItem icon={<GrChannel className='w-6 h-6' />} text="Your Channel" link={`/channel/${session.user.channelId}`} sidebarState={sidebarState} />
-                            <SidebarItem icon={<TbMoneybag className='w-6 h-6' />} text="Your Earnings" link="/earnings" sidebarState={sidebarState} />
-                            <SidebarItem icon={<GrUpload className='w-6 h-6' />} text="Upload Video" link="/uploadVideo" sidebarState={sidebarState} />
+                            <SidebarItem icon={<GrChannel className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Your Channel" link={`/channel/${session.user.channelId}`} sidebarState={sidebarState} />
+                            <SidebarItem icon={<TbMoneybag className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Your Earnings" link="/earnings" sidebarState={sidebarState} />
+                            <SidebarItem icon={<GrUpload className={`${sidebarState === 'icons' ? 'w-8 h-8' : 'w-6 h-6'}`} />} text="Upload Video" link="/uploadVideo" sidebarState={sidebarState} />
                         </>
                     )}
                     {session && subscriptions.length > 0 && (
@@ -75,7 +75,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
                     {sidebarState === 'full' ? (
                         <VirtualWallet />
                     ) : (
-                        <Link href="/statement" className={`flex items-center justify-center p-2`}>
+                        <Link href="/statement" className={`btn btn-ghost m-1 flex items-center justify-center p-2`}>
                             <TbWallet className="w-8 h-8" />
                         </Link>
                     )}
@@ -87,7 +87,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
 
 const SidebarItem = ({ icon, text, link, sidebarState }) => (
     <li>
-        <Link href={link} className={`flex items-center ${sidebarState === 'icons' ? 'justify-center' : ''}`}>
+        <Link href={link} className={`flex items-center ${sidebarState === 'icons' ? 'justify-center p-2' : ''}`}>
             {icon}
             {sidebarState === 'full' && <span className="ml-2">{text}</span>}
         </Link>
@@ -98,9 +98,9 @@ const SidebarChannel = ({ id, image, name, sidebarState }) => (
     <li key={id}>
         <Link
             href={`/channel/${id}`}
-            className={`flex items-center ${sidebarState === 'icons' ? 'justify-center' : ''} relative group`}
+            className={`flex items-center ${sidebarState === 'icons' ? 'justify-center p-2' : ''} relative group`}
         >
-            <img src={image} alt={name} className={`${sidebarState === 'icons' ? 'w-6 h-6' : 'w-8 h-8'} rounded-full`} />
+            <img src={image} alt={name} className={`w-8 h-8 rounded-full`} />
             {sidebarState === 'full' && <span className="ml-2">{name}</span>}
         </Link>
     </li>

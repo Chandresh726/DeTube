@@ -15,7 +15,7 @@ const NavbarRight = ({ session }: { session: any }) => {
                 <div className=''>
                     <ThemeToggle />
                 </div>
-                <div className='mr-2'>{session.user?.name?.split(" ")[0]}</div>
+                <div className='mr-2 text-sm md:text-md'>{session.user?.name?.split(" ")[0]}</div>
                 <div className="dropdown dropdown-end">
                     <div tabIndex={0} role="button" className="btn btn-ghost btn-circle avatar">
                         <div className="w-10 rounded-full">
