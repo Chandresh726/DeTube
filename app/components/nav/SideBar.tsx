@@ -101,9 +101,19 @@ const SidebarChannel = ({ id, image, name, sidebarState }) => (
             className={`flex items-center ${sidebarState === 'icons' ? 'justify-center p-2' : ''} relative group`}
         >
             <img src={image} alt={name} className={`w-8 h-8 rounded-full`} />
-            {sidebarState === 'full' && <span className="ml-2">{name}</span>}
+            {sidebarState === 'full' && <span className="ml-2">{toCamelCase(name)}</span>}
         </Link>
     </li>
 );
+
+const toCamelCase = (str: String) => {
+    return str
+        .toLowerCase() // Convert the entire string to lowercase
+        .split(/[^a-zA-Z0-9]+/) // Split the string by non-alphanumeric characters
+        .map((word, index) =>
+            word.charAt(0).toUpperCase() + word.slice(1) // Capitalize the first letter of words
+        )
+        .join(' '); // Join the words back into a single string
+}
 
 export default SideBar;

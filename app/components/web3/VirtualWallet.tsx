@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { IoMdArrowRoundDown, IoMdArrowRoundUp } from "react-icons/io";
 import { useBalance } from '../../hooks/useBalance';
+import Link from 'next/link';
 
 const VirtualWallet = () => {
     const router = useRouter();
@@ -14,10 +15,10 @@ const VirtualWallet = () => {
         <div className={`stat px-2 py-2 ${isExpanded ? 'flex-none' : ''}`}>
             <div className="divider my-1"></div>
             <div className='flex justify-between items-center mx-1'>
-                <div>
+                <Link href="/statement">
                     <div className="stat-title">Current balance</div>
                     <div className="stat-value">{(balance / LAMPORTS_PER_SOL).toFixed(1)} YTSol</div>
-                </div>
+                </Link>
                 <div
                     onClick={() => setIsExpanded(!isExpanded)}
                     className="btn btn-ghost p-2"
