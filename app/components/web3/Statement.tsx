@@ -98,7 +98,7 @@ const Statement = ({ session }) => {
                                         <td className="hidden lg:table-cell">
                                             <div className='flex'>
                                                 <TruncatedText text={transaction.signature} />
-                                                {transaction.signature && <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />}
+                                                {transaction.signature && <VisitLink href={`https://explorer.solana.com/tx/${transaction.signature}?cluster=devnet`} />}
                                             </div>
                                         </td>
                                         <td className={transaction.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}>{transaction.status}</td>
@@ -142,7 +142,7 @@ const Statement = ({ session }) => {
                                         <td className="hidden lg:table-cell">
                                             <div className='flex'>
                                                 <TruncatedText text={transaction.signature} />
-                                                {transaction.signature && <VisitLink href={`https://solscan.io/tx/${transaction.signature}?cluster=devnet`} />}
+                                                {transaction.signature && <VisitLink href={`https://explorer.solana.com/tx/${transaction.signature}?cluster=devnet`} />}
                                             </div>
                                         </td>
                                         <td className={transaction.status === 'SUCCESS' ? 'text-green-400' : 'text-red-400'}>{transaction.status}</td>
