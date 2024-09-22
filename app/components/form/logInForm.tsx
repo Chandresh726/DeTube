@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
 import { useTheme } from '../wrapper/ThemeContext';
+import Link from 'next/link';
 
 const LogInForm = () => {
   const { theme } = useTheme();
@@ -20,7 +21,7 @@ const LogInForm = () => {
     });
 
     if (result?.error) {
-      setErrorMessage(result.error);
+      setErrorMessage("Invalid Email/Password");
     } else {
       setErrorMessage('');
     }
@@ -34,7 +35,7 @@ const LogInForm = () => {
   };
 
   return (
-    <div className={`p-6 max-w-md mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
+    <div className={`p-6 max-w-md mx-auto mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-black'}`}>
       <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -42,7 +43,7 @@ const LogInForm = () => {
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {setEmail(e.target.value);setErrorMessage("");}}
             required
             className="input input-bordered block w-full"
           />
@@ -52,14 +53,11 @@ const LogInForm = () => {
           <input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {setPassword(e.target.value);setErrorMessage("");}}
             required
             className="input input-bordered block w-full"
           />
         </div>
-        {errorMessage && (
-          <div className="text-red-500">{errorMessage}</div>
-        )}
         <button
           type="submit"
           className={`w-full py-2 px-4 font-semibold rounded-lg shadow-md ${email && password ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
@@ -74,6 +72,9 @@ const LogInForm = () => {
             <div>Login</div>
           )}
         </button>
+        {errorMessage && (
+          <div className="text-red-500 text-center">{errorMessage}</div>
+        )}
       </form>
       <div className="divider"></div>
       <div className="mt-6 flex flex-col items-center">
@@ -95,12 +96,12 @@ const LogInForm = () => {
       <div className="mt-6 text-center">
         <p className="">
           Don&apos;t have an account?{' '}
-          <a
+          <Link
             href="/signUp"
             className="text-blue-600 hover:underline"
           >
             Register here
-          </a>
+          </Link>
         </p>
       </div>
     </div>

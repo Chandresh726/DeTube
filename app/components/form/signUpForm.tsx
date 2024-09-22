@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { signIn } from "next-auth/react"
+import { signIn } from "next-auth/react";
 import { useTheme } from '../wrapper/ThemeContext';
+import Link from 'next/link';
 
 const SignupForm = () => {
   const { theme } = useTheme();
@@ -13,14 +14,20 @@ const SignupForm = () => {
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Form validation
   useEffect(() => {
-    setIsFormValid(
-      email !== '' &&
-      password !== '' &&
-      confirmPassword !== '' &&
-      password === confirmPassword &&
-      name !== ''
-    );
+    if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
+      setErrorMessage('Passwords do not match');
+      setIsFormValid(false);
+    } else {
+      setErrorMessage('');
+      setIsFormValid(
+        email !== '' &&
+        password !== '' &&
+        confirmPassword !== '' &&
+        name !== ''
+      );
+    }
   }, [email, password, confirmPassword, name]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -36,7 +43,7 @@ const SignupForm = () => {
       });
 
       if (response.ok) {
-        signIn()
+        signIn(); // Redirects to sign-in
       } else {
         const error = await response.json();
         setErrorMessage(error.message);
@@ -50,8 +57,9 @@ const SignupForm = () => {
   };
 
   return (
-    <div className={`p-6 max-w-md mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
+    <div className={`p-6 max-w-md mx-auto mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-black'}`}>
+      <h1 className="text-2xl font-bold text-center mb-3">Create Account</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <div className="my-2 text-lg">Name</div>
           <input
@@ -93,7 +101,7 @@ const SignupForm = () => {
           />
         </div>
         {errorMessage && (
-          <div className="text-red-500">{errorMessage}</div>
+          <div className="text-red-500 text-center">{errorMessage}</div>
         )}
         <button
           type="submit"
@@ -113,12 +121,9 @@ const SignupForm = () => {
       <div className="mt-6 text-center">
         <p className="">
           Already have an account?{' '}
-          <a
-            href="/logIn"
-            className="text-blue-600 hover:underline"
-          >
+          <Link href="/logIn" className="text-blue-600 hover:underline">
             Login here
-          </a>
+          </Link>
         </p>
       </div>
     </div>
