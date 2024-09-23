@@ -178,7 +178,7 @@ const Statement = ({ session }) => {
                                 statement.THANKS.map((transaction, index) => (
                                     <tr key={index}>
                                         <td>{formatDate(transaction.createdAt)}</td>
-                                        <td>{formatAmount(transaction.amount)} YTSol</td>
+                                        <td>{formatAmount(transaction.amount)} DTSol</td>
                                         <td>
                                             {transaction.channel?.name}
                                             {transaction.channel?.name && <VisitLink href={`/channel/${transaction.channel.id}`} />}

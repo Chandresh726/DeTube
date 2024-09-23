@@ -18,7 +18,7 @@ const Supporters = ({ supporters }) => {
                                     {(user.name).split(" ")[0]}
                                 </div>
                             </td>
-                            <td className='text-sm font-bold px-1'>{(Number(user.amount) / LAMPORTS_PER_SOL).toFixed(1)} YTSol</td>
+                            <td className='text-sm font-bold px-1'>{(Number(user.amount) / LAMPORTS_PER_SOL).toFixed(1)} DTSol</td>
                         </tr>
                     ))}
                 </tbody>
