@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Connection } from '@solana/web3.js';
 import prisma from '../../util/prisma';
+import { authenticateUser } from '../../middleware/auth';
 
 const connection = new Connection(process.env.SOLANA_RPC_URL, 'confirmed');
 
 export async function POST(req: NextRequest) {
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     try {
         const { address, amount, signature } = await req.json();
 

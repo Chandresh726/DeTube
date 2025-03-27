@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import nacl from 'tweetnacl';
 import bs58 from 'bs58';
 import prisma from '../../util/prisma';
+import { authenticateUser } from '../../middleware/auth';
 
 export async function POST(req: NextRequest) {
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     try {
         const { publicKey, signature, message, userId } = await req.json();
 
@@ -17,9 +23,9 @@ export async function POST(req: NextRequest) {
 
         // Verify the signature
         const isValid = nacl.sign.detached.verify(
-            Buffer.from(message),
-            signatureBytes,
-            publicKeyBytes
+            new TextEncoder().encode(message),
+            Uint8Array.from(signatureBytes),
+            Uint8Array.from(publicKeyBytes)
         );
 
         if (!isValid) {
