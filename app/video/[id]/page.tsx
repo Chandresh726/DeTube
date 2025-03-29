@@ -20,7 +20,7 @@ const VideoPage = ({ params }: PageProps) => {
             setVideoData(data)
         }
         prepareData()
-    }, [])
+    }, [videoId])
 
     if (!videoData) {
         return <ViewVideoLoading />

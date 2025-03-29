@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://detube.slope726.in/sitemap.xml
