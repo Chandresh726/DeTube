@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../util/prisma';
+import { authenticateUser } from '../../middleware/auth';
 
 export async function POST(req: NextRequest) {
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     try {
         const body = await req.json();
         const { userId, channelId, status } = body;

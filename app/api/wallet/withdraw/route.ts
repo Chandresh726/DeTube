@@ -2,8 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as web3 from '@solana/web3.js';
 import prisma from '../../util/prisma';
 import bs58 from 'bs58';
+import { authenticateUser } from '../../middleware/auth';
 
 export async function POST(req: NextRequest) {
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     try {
         const { userId, walletAddress, amount } = await req.json();
 
@@ -38,7 +44,7 @@ export async function POST(req: NextRequest) {
         }
 
         const connection = new web3.Connection(process.env.SOLANA_RPC_URL, 'confirmed');
-        const centralWallet = web3.Keypair.fromSecretKey(bs58.decode(process.env.WALLET_PRIVATE_KEY));
+        const centralWallet = web3.Keypair.fromSecretKey(Uint8Array.from(bs58.decode(process.env.WALLET_PRIVATE_KEY)));
 
         const transaction = new web3.Transaction();
         const recipientPubKey = new web3.PublicKey(walletAddress);

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../util/prisma';
+import { authenticateUser } from '../../middleware/auth';
 
 export async function POST(req: NextRequest) {
+    // Check authentication first
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     try {
         const { channelId, videoId, title, description, thumbnail, video } = await req.json();
         // Validate the required fields

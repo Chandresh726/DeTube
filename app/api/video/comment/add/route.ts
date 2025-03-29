@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '../../../util/prisma';
+import { authenticateUser } from '../../../middleware/auth';
 
 export async function POST(req: NextRequest) {
+    const session = await authenticateUser(req);
+    if (session instanceof NextResponse) {
+        return session;
+    }
+
     const { videoId, userId, content } = await req.json();
 
     if (!videoId || !userId || !content) {
