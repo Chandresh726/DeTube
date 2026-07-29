@@ -1,17 +1,17 @@
 "use client";
 import ViewVideo from '../../components/video/ViewVideo';
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import { getVideoData } from '../../util/fetch/video';
 import ViewVideoLoading from '../../components/loading/ViewVideoLoading';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const VideoPage = ({ params }: PageProps) => {
-    const videoId = params.id;
+    const { id: videoId } = use(params);
     const [videoData, setVideoData] = useState(null)
 
     useEffect(() => {

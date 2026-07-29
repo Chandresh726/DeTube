@@ -86,7 +86,7 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
             <Navbar session={session} onToggleSidebar={handleToggleSidebar} />
             <div className="flex pt-16">
                 <SideBar session={session} sidebarState={sidebarState} subscriptions={subscriptions} />
-                <div className={`flex-grow transition-margin duration-200 ease-in-out ${
+                <div className={`grow transition-margin duration-200 ease-in-out ${
                     sidebarState === 'full' ? 'md:ml-64' : 
                     sidebarState === 'icons' ? 'md:ml-16' : 'ml-0 lg:px-20'
                 }`}>

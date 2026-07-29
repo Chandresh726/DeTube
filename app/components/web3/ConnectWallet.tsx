@@ -2,7 +2,7 @@
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import React, { useEffect, useState } from 'react';
-import * as bs58 from 'bs58';
+import bs58 from 'bs58';
 import { checkUserWallet, verifyUserWallet } from '../../util/fetch/wallet';
 
 const ConnectWallet = ({ setWalletVerified, userId }) => {

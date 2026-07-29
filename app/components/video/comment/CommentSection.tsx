@@ -38,7 +38,7 @@ const CommentSection = ({ videoId }) => {
                                 alt={comment.name}
                                 className="w-10 h-10 rounded-full object-cover mr-4"
                             />
-                            <div className="flex-grow">
+                            <div className="grow">
                                 <div className="flex items-center">
                                     <span className="font-semibold">{comment.name}</span>
                                     <span className='ml-10 text-xs text-gray-400'>{comment.timeSince}</span>

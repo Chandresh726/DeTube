@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth";
-import dynamic from "next/dynamic";
 import { authOptions } from "./util/auth";
 import { BalanceProvider } from "./hooks/useBalance";
 import Provider from "./components/wrapper/Provider";
+import DynamicNavBarWrapper from "./components/wrapper/DynamicNavBarWrapper";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -26,13 +26,6 @@ export const metadata: Metadata = {
   }
 };
 
-const NavbarWrapper = dynamic(
-  () => {
-    return import("./components/wrapper/NavBarWrapper");
-  },
-  { ssr: false }
-)
-
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -40,18 +33,18 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
   return (
-    <Provider>
-      <html lang="en">
-        <body className={inter.className}>
+    <html lang="en">
+      <body className={inter.className}>
+        <Provider>
           <BalanceProvider session={session}>
-            <NavbarWrapper session={session}>
+            <DynamicNavBarWrapper session={session}>
               {children}
               <SpeedInsights />
               <Analytics />
-            </NavbarWrapper>
+            </DynamicNavBarWrapper>
           </BalanceProvider>
-        </body>
-      </html>
-    </Provider>
+        </Provider>
+      </body>
+    </html>
   );
 }

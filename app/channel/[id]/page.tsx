@@ -1,17 +1,17 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 import ViewChannel from '../../components/ViewChannel';
 import { getChannelData } from '../../util/fetch/channel';
 import ViewChannelLoading from '../../components/loading/ViewChannelLoading';
 
 interface PageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const ChannelPage = ({ params }: PageProps) => {
-    const channelId = params.id;
+    const { id: channelId } = use(params);
     const [channelData, setChannelData] = useState(null);
     useEffect(() => {
         const prepareData = async () => {

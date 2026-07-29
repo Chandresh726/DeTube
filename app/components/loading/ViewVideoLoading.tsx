@@ -4,7 +4,7 @@ const ViewVideoLoading = () => {
     return (
         <div className="container mx-auto px-1 lg:px-16">
             <div className="flex flex-col lg:flex-row">
-                <div className="flex-grow lg:w-3/4">
+                <div className="grow lg:w-3/4">
                     <div className="relative aspect-video rounded-md overflow-hidden">
                         <div className="skeleton h-full w-full"></div>
                     </div>

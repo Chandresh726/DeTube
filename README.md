@@ -33,11 +33,11 @@ Follow these steps to run the project locally:
 ```
 
 #### 2️⃣ Install Dependencies
-Ensure you have Node.js and npm or yarn installed.
+Ensure you have Node.js 24 and Corepack installed.
 ```bash
-  npm install
-  or
-  yarn install
+  corepack enable
+  corepack prepare pnpm@10.34.0 --activate
+  pnpm install
 ```
 
 #### 3️⃣ Configure Environment Variables
@@ -49,11 +49,15 @@ Update the values in the .env file with your credentials.
 
 #### 4️⃣ Run the Development Server
 ```bash
-  npm run dev
-  or
-  yarn dev
+  pnpm dev
 ```
 Visit the app at http://localhost:3000.
+
+#### 5️⃣ Build and Run for Production
+```bash
+  pnpm build
+  pnpm start
+```
 ## 📧 Contact
 For any inquiries, feel free to reach out:
 
@@ -62,4 +66,3 @@ For any inquiries, feel free to reach out:
 X : Chandresh_726
 
 Email : kchandresh726@gmail.com
-

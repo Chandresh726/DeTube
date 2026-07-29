@@ -13,7 +13,7 @@ const ViewVideo = ({ videoData }) => {
     return (
         <div className={`container mx-auto px-1 lg:px-16 ${theme === 'dark' ? '' : 'text-black'}`}>
             <div className="flex flex-col lg:flex-row">
-                <div className="flex-grow lg:w-3/4">
+                <div className="grow lg:w-3/4">
                     <div className="relative aspect-video rounded-md overflow-hidden">
                         <video
                             controls

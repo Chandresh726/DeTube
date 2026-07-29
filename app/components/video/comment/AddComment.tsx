@@ -34,13 +34,13 @@ const AddComment = ({ videoId, triggerUpdate }) => {
                 alt={session?.user.name}
                 className="w-16 h-16 rounded-full object-cover mr-4"
             />
-            <div className="flex-grow">
+            <div className="grow">
                 <form onSubmit={handleCommentSubmit} className="relative">
                     <div className="flex items-center">
                         <span className="font-semibold">{session?.user.name}</span>
                     </div>
                     <textarea
-                        className="w-full p-2 mt-2 bg-transparent border-b-2 border-gray-700 focus:outline-none focus:border-white"
+                        className="w-full p-2 mt-2 bg-transparent border-b-2 border-gray-700 focus:outline-hidden focus:border-white"
                         placeholder="Add comment here"
                         value={comment}
                         onChange={handleCommentChange}
@@ -50,14 +50,14 @@ const AddComment = ({ videoId, triggerUpdate }) => {
                         <div className="flex justify-end space-x-2 mt-2">
                             <button
                                 type="button"
-                                className="px-4 py-2 rounded-3xl bg-gray-500 text-white hover:bg-gray-600 focus:outline-none focus:ring focus:ring-gray-300"
+                                className="px-4 py-2 rounded-3xl bg-gray-500 text-white hover:bg-gray-600 focus:outline-hidden focus:ring-3 focus:ring-gray-300"
                                 onClick={handleCancel}
                             >
                                 Cancel
                             </button>
                             <button
                                 type="submit"
-                                className="px-4 py-2 rounded-3xl bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring focus:ring-blue-300"
+                                className="px-4 py-2 rounded-3xl bg-blue-500 text-white hover:bg-blue-600 focus:outline-hidden focus:ring-3 focus:ring-blue-300"
                             >
                                 Comment
                             </button>

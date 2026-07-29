@@ -36,7 +36,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
             ${sidebarWidth} overflow-hidden flex flex-col`}
         >
             <div
-                className={`transition-opacity duration-200 ease-in-out flex-grow custom-scrollbar
+                className={`transition-opacity duration-200 ease-in-out grow custom-scrollbar
                 ${theme === 'dark' ? 'dark-scrollbar' : 'light-scrollbar'}
                 ${sidebarState !== 'closed' ? 'opacity-100 delay-200' : 'opacity-0'}`}
             >

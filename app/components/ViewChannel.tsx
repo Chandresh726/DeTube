@@ -10,7 +10,7 @@ const ViewChannel = ({ channelData }) => {
     return (
         <div className={`container mx-auto lg:px-16 ${theme === 'dark' ? '' : 'text-black'}`}>
             <div className='flex flex-wrap sm:flex-nowrap items-stretch justify-center'>
-                <div className='flex-shrink-0 p-4 w-1/2 md:w-1/3 lg:w-1/6'>
+                <div className='shrink-0 p-4 w-1/2 md:w-1/3 lg:w-1/6'>
                     <Image
                         src={channelData?.image}
                         alt={`${channelData?.name} logo`}
@@ -19,7 +19,7 @@ const ViewChannel = ({ channelData }) => {
                         className="rounded-full object-cover w-full h-full"
                     />
                 </div>
-                <div className='flex-grow px-4 md:p-4 flex flex-col justify-between'>
+                <div className='grow px-4 md:p-4 flex flex-col justify-between'>
                     <div>
                         <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mt-4">{channelData?.name}</h1>
                         <p className="text-lg text-gray-600 mt-2">{channelData?.stats.subscriberCount} subscribers</p>
