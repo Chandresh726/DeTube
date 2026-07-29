@@ -54,7 +54,8 @@ origin to use `GET`, `HEAD`, and `PUT` with the `Content-Type` header.
 
 For Vercel deployments, add `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
 `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_PUBLIC_URL` to the Preview and
-Production environments.
+Production environments. Set `ENABLE_EXPERIMENTAL_COREPACK=1` so older Vercel
+projects honor the PNPM version pinned in `package.json`.
 
 #### 4️⃣ Run the Development Server
 ```bash
