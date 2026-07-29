@@ -16,7 +16,7 @@ DeTube is a decentralized video streaming platform that leverages blockchain tec
 
 **Authentication:** NextAuth.js (Google, GitHub)
 
-**Storage:** AWS S3, CloudFront CDN
+**Storage:** Cloudflare R2
 
 **Blockchain:** Solana RPC for Wallet Integration
 
@@ -46,6 +46,15 @@ Create a .env file in the root directory and copy the values from the .env.examp
   cp .env.example .env
 ```
 Update the values in the .env file with your credentials.
+
+For media uploads, create an R2 Object Read & Write token scoped to the
+configured bucket. Set `R2_PUBLIC_URL` to the bucket's Cloudflare custom domain.
+The bucket CORS policy must allow your local origin and deployed application
+origin to use `GET`, `HEAD`, and `PUT` with the `Content-Type` header.
+
+For Vercel deployments, add `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+`R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, and `R2_PUBLIC_URL` to the Preview and
+Production environments.
 
 #### 4️⃣ Run the Development Server
 ```bash

@@ -4,7 +4,7 @@ import { MdUpload } from "react-icons/md";
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
-import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/s3';
+import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/r2';
 import { createChannel } from '../../util/fetch/channel';
 import { useTheme } from '../wrapper/ThemeContext';
 
@@ -32,7 +32,7 @@ const CreateChannelForm = ({ userId }: { userId: Number }) => {
       try {
         setUploadingLogo(true)
         // Send request to get presigned URL
-        const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoid);
+        const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoid, file.type);
 
         // Upload the file using the presigned URL
         const uploadResponse = await hitPresignedurl(presignedUrl, file)

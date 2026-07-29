@@ -12,7 +12,7 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'd699fes17772n.cloudfront.net',
+        hostname: 'media.detube.slope726.in',
       },
     ]
   },

@@ -5,7 +5,7 @@ import { MdUpload } from "react-icons/md";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation'
 import ProgressBar from '../video/progressBar';
-import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/s3';
+import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/r2';
 import { createVideo } from '../../util/fetch/video';
 import { useTheme } from '../wrapper/ThemeContext';
 
@@ -38,7 +38,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
             try {
                 setUploadingThumbnail(true)
                 // Send request to get presigned URL
-                const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId);
+                const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId, file.type);
 
                 // Upload the file using the presigned URL
                 const uploadResponse = await hitPresignedurl(presignedUrl, file)
@@ -61,7 +61,7 @@ const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
             try {
                 setUploadingVideo(true)
                 // Send request to get presigned URL
-                const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId);
+                const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId, file.type);
 
                 // Upload the file using the presigned URL
                 const uploadResponse = await hitVideoPresignedurl(presignedUrl, file, (progress) => {
