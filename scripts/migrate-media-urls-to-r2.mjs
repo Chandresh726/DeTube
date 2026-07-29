@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 import pg from 'pg'
@@ -10,6 +11,8 @@ const EXPECTED_COUNTS = {
     channelLogos: 10,
 }
 
+let r2Client
+
 function getRequiredEnvironmentVariable(name) {
     const value = process.env[name]
 
@@ -18,6 +21,23 @@ function getRequiredEnvironmentVariable(name) {
     }
 
     return value
+}
+
+function getR2Client() {
+    if (!r2Client) {
+        const accountId = getRequiredEnvironmentVariable('R2_ACCOUNT_ID')
+
+        r2Client = new S3Client({
+            region: 'auto',
+            endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+            credentials: {
+                accessKeyId: getRequiredEnvironmentVariable('R2_ACCESS_KEY_ID'),
+                secretAccessKey: getRequiredEnvironmentVariable('R2_SECRET_ACCESS_KEY'),
+            },
+        })
+    }
+
+    return r2Client
 }
 
 function normalizeBaseURL(value) {
@@ -129,6 +149,21 @@ function validateSourceMedia(media, targetBaseURL) {
             targetImage: getTargetURL(channel.image, targetBaseURL),
         })),
     }
+}
+
+async function verifyR2Objects(objectKeys) {
+    const Bucket = getRequiredEnvironmentVariable('R2_BUCKET_NAME')
+    const client = getR2Client()
+
+    await Promise.all(
+        objectKeys.map(async (Key) => {
+            try {
+                await client.send(new HeadObjectCommand({ Bucket, Key }))
+            } catch (error) {
+                throw new Error(`R2 object verification failed for ${Key}`, { cause: error })
+            }
+        }),
+    )
 }
 
 async function applyMigration(client, backup) {
@@ -290,6 +325,9 @@ try {
         console.log(`User profile images left untouched: ${media.userImages.length}`)
 
         if (command === '--apply') {
+            await verifyR2Objects(validated.objectKeys)
+            console.log(`Confirmed ${validated.objectKeys.length} referenced objects in R2`)
+
             const backupDirectory = path.resolve('.migration-backups')
             const timestamp = new Date().toISOString().replaceAll(':', '-')
             const backupPath = path.join(backupDirectory, `media-urls-${timestamp}.json`)
