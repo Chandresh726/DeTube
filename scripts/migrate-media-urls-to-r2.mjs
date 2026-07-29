@@ -172,7 +172,7 @@ async function applyMigration(client, backup) {
     try {
         const thumbnails = await client.query(
             `UPDATE "Video"
-             SET "thumbnailUrl" = $1 || substring("thumbnailUrl" from $2)
+             SET "thumbnailUrl" = $1 || substring("thumbnailUrl" from $2::integer)
              WHERE "thumbnailUrl" LIKE $3`,
             [
                 backup.targetBaseURL,
@@ -182,7 +182,7 @@ async function applyMigration(client, backup) {
         )
         const videos = await client.query(
             `UPDATE "Video"
-             SET "videoUrl" = $1 || substring("videoUrl" from $2)
+             SET "videoUrl" = $1 || substring("videoUrl" from $2::integer)
              WHERE "videoUrl" LIKE $3`,
             [
                 backup.targetBaseURL,
@@ -192,7 +192,7 @@ async function applyMigration(client, backup) {
         )
         const channelLogos = await client.query(
             `UPDATE "Channel"
-             SET image = $1 || substring(image from $2)
+             SET image = $1 || substring(image from $2::integer)
              WHERE image LIKE $3`,
             [
                 backup.targetBaseURL,
