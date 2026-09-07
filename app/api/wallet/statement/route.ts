@@ -1,61 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
+import { requireSession } from '@/lib/server/auth';
+import { handleRouteError, fail } from '@/lib/server/http';
+import { walletService } from '@/lib/server/services/wallet';
 
 export async function GET(req: NextRequest) {
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const id = new URL(req.url).searchParams.get('id');
+    if (id !== null && Number(id) !== sessionUserId) {
+      return fail('FORBIDDEN', 'Cannot read another user\'s statement');
     }
-
-    const url = new URL(req.url);
-    const userId = parseInt(url.searchParams.get('id') || '', 10);
-
-    if (isNaN(userId)) {
-        return NextResponse.json({ error: 'Invalid user ID' }, { status: 400 });
-    }
-
-    try {
-        // Fetch transactions for the given user ID
-        const transactions = await prisma.transaction.findMany({
-            where: {
-                userId: userId
-            },
-            orderBy: {
-                createdAt: 'desc' // Sort by recent transactions first
-            },
-            include: {
-                wallet: true, // Include wallet information
-                channel: true
-            }
-        });
-
-        // Convert BigInt values to string for serialization
-        const transactionsWithStringAmounts = transactions.map(transaction => ({
-            ...transaction,
-            amount: transaction.amount.toString() // Convert BigInt to string
-        }));
-
-        // Initialize grouped transactions with empty arrays for each type
-        const groupedTransactions: Record<string, typeof transactionsWithStringAmounts> = {
-            DEPOSIT: [],
-            WITHDRAWAL: [],
-            THANKS: []
-        };
-
-        // Group transactions by type
-        transactionsWithStringAmounts.forEach(transaction => {
-            const type = transaction.type;
-            if (!groupedTransactions[type]) {
-                groupedTransactions[type] = [];
-            }
-            groupedTransactions[type].push(transaction);
-        });
-
-        // Return grouped transactions
-        return NextResponse.json(groupedTransactions, { status: 200 });
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+    const grouped = await walletService.getStatement(sessionUserId);
+    return NextResponse.json(grouped);
+  } catch (error) {
+    return handleRouteError(error, 'GET /api/wallet/statement');
+  }
 }

@@ -1,43 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
+import { requireSession } from '@/lib/server/auth';
+import { handleRouteError, fail } from '@/lib/server/http';
+import { walletService } from '@/lib/server/services/wallet';
 
 export async function GET(req: NextRequest) {
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const id = new URL(req.url).searchParams.get('id');
+    // Identity comes from the session; a supplied id must match (prevents balance oracle).
+    if (id !== null && Number(id) !== sessionUserId) {
+      return fail('FORBIDDEN', 'Cannot read another user\'s balance');
     }
-
-    const url = new URL(req.url);
-    const userId = url.searchParams.get('id');
-
-    if (!userId) {
-        return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
-    }
-
-    try {
-        const user = await prisma.user.findUnique({
-            where: {
-                id: Number(userId),
-            },
-            select: {
-                balance: true,
-                lockedBalance: true,
-            },
-        });
-
-        if (!user) {
-            return NextResponse.json({ error: 'User not found' }, { status: 404 });
-        }
-
-        const userBalance = {
-            balance: user.balance.toString(),
-            lockedBalance: user.lockedBalance,
-        };
-
-        return NextResponse.json(userBalance, { status: 200 });
-    } catch (error) {
-        console.error('Error fetching user balance:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+    const balance = await walletService.getBalance(sessionUserId);
+    return NextResponse.json(balance);
+  } catch (error) {
+    return handleRouteError(error, 'GET /api/wallet/balance');
+  }
 }

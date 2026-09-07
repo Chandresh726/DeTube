@@ -1,89 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
+import { requireSession, assertOwnership } from '@/lib/server/auth';
+import { handleRouteError } from '@/lib/server/http';
+import { reactionLegacySchema } from '@/lib/server/validation';
+import { reactionService } from '@/lib/server/services/social';
 
+/**
+ * Canonical reaction endpoint (authenticated).
+ * Legacy { status: check|like|dislike|remove } contract preserved for the
+ * existing frontend; new clients should use /api/video/reaction instead.
+ */
 export async function POST(req: NextRequest) {
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const body = reactionLegacySchema.parse(await req.json());
+    const userId = assertOwnership(sessionUserId, body.userId);
+
+    if (body.status === 'check') {
+      const reactionType = await reactionService.get(body.videoId, userId);
+      return NextResponse.json({ reactionType });
     }
-
-    try {
-        const body = await req.json();
-        const { userId, videoId, status } = body;
-
-        // Validate and convert userId
-        const userIdNumber = parseInt(userId, 10);
-
-        if (isNaN(userIdNumber)) {
-            return NextResponse.json({ message: 'UserId must be a valid number' }, { status: 400 });
-        }
-
-        // Check if the user exists
-        const user = await prisma.user.findUnique({ where: { id: userIdNumber } });
-        if (!user) {
-            return NextResponse.json({ message: 'User not found' }, { status: 404 });
-        }
-
-        // Check if the video exists
-        const video = await prisma.video.findUnique({ where: { id: videoId } });
-        if (!video) {
-            return NextResponse.json({ message: 'Video not found' }, { status: 404 });
-        }
-
-        // Check if the reaction already exists
-        const existingReaction = await prisma.reaction.findFirst({
-            where: {
-                userId: userIdNumber,
-                videoId: videoId,
-            },
-        });
-
-        if (status === 'check') {
-            if (existingReaction) {
-                return NextResponse.json({ reactionType: existingReaction.type }, { status: 200 });
-            } else {
-                return NextResponse.json({ reactionType: null }, { status: 200 });
-            }
-        } else if (status === 'like' || status === 'dislike') {
-            const reactionType = status === 'like' ? 'LIKE' : 'DISLIKE';
-
-            if (existingReaction) {
-                // Update the existing reaction
-                const updatedReaction = await prisma.reaction.update({
-                    where: { id: existingReaction.id },
-                    data: { type: reactionType },
-                });
-
-                return NextResponse.json(updatedReaction, { status: 200 });
-            } else {
-                // Create a new reaction
-                const newReaction = await prisma.reaction.create({
-                    data: {
-                        userId: userIdNumber,
-                        videoId: videoId,
-                        type: reactionType,
-                    },
-                });
-
-                return NextResponse.json(newReaction, { status: 200 });
-            }
-        } else if (status === 'remove') {
-            if (existingReaction) {
-                // Remove the reaction
-                await prisma.reaction.delete({
-                    where: { id: existingReaction.id },
-                });
-
-                return NextResponse.json({ message: 'Reaction removed successfully' }, { status: 200 });
-            } else {
-                return NextResponse.json({ message: 'Reaction not found' }, { status: 404 });
-            }
-        } else {
-            return NextResponse.json({ message: 'Invalid status' }, { status: 400 });
-        }
-    } catch (error) {
-        console.error('Error processing request:', error);
-        return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
+    if (body.status === 'like' || body.status === 'dislike') {
+      const type = body.status === 'like' ? 'LIKE' : 'DISLIKE';
+      const result = await reactionService.set(body.videoId, userId, type);
+      if (result.status === 'exists' || result.status === 'updated') {
+        return NextResponse.json({ reactionType: type });
+      }
+      return NextResponse.json({ reactionType: type }, { status: 201 });
     }
+    // remove
+    await reactionService.remove(body.videoId, userId);
+    return NextResponse.json({ message: 'Reaction removed successfully' });
+  } catch (error) {
+    return handleRouteError(error, 'POST /api/reaction/react');
+  }
 }

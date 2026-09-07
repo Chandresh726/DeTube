@@ -1,36 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
+import { requireSession } from '@/lib/server/auth';
+import { handleRouteError } from '@/lib/server/http';
+import { videoAddSchema } from '@/lib/server/validation';
+import { videoService } from '@/lib/server/services/videos';
+import { isHttpsUrlFromPublicBucket } from '@/lib/server/storage';
+import { AppError } from '@/lib/server/http';
 
 export async function POST(req: NextRequest) {
-    // Check authentication first
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
+  try {
+    const { userId: ownerUserId } = await requireSession();
+    const body = videoAddSchema.parse(await req.json());
+    // Provenance check: media must come from our own bucket (prevents external malware hosts).
+    if (!isHttpsUrlFromPublicBucket(body.thumbnail) || !isHttpsUrlFromPublicBucket(body.video)) {
+      throw new AppError('BAD_REQUEST', 'Media URLs must be from the configured storage bucket');
     }
-
-    try {
-        const { channelId, videoId, title, description, thumbnail, video } = await req.json();
-        // Validate the required fields
-        if (!channelId || !videoId || !title || !thumbnail || !video) {
-            return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-        }
-
-        // Insert the new video into the database
-        const newVideo = await prisma.video.create({
-            data: {
-                id: videoId,  // Use the videoId sent from the frontend
-                title,
-                description,
-                thumbnailUrl: thumbnail,
-                videoUrl: video,
-                channelId,
-            },
-        });
-
-        return NextResponse.json({ message: 'Video created successfully', videoId: newVideo.id }, { status: 200 });
-    } catch (error) {
-        console.error('Error creating video:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-    }
+    const created = await videoService.add({ ...body, ownerUserId });
+    return NextResponse.json({ message: 'Video created successfully', videoId: created.id }, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error, 'POST /api/video/add');
+  }
 }

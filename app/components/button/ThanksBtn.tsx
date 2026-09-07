@@ -35,7 +35,7 @@ const ThanksButton = ({ channelId, channelName }) => {
         setSuccess(false);
         try {
             // Notify backend about the thank you transaction
-            const res = await sendThanks(parseFloat(amount) * LAMPORTS_PER_SOL, session.user.id, channelId);
+            const res = await sendThanks(Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), session.user.id, channelId);
 
             if (res.success) {
                 setSuccess(true);

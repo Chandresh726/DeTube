@@ -1,75 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Connection } from '@solana/web3.js';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
-
-const connection = new Connection(process.env.SOLANA_RPC_URL, 'confirmed');
+import { requireSession, assertOwnership } from '@/lib/server/auth';
+import { handleRouteError } from '@/lib/server/http';
+import { depositSchema } from '@/lib/server/validation';
+import { walletService } from '@/lib/server/services/wallet';
 
 export async function POST(req: NextRequest) {
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const body = depositSchema.parse(await req.json());
+    // Wallet ownership is verified inside the service (address must belong to session user).
+    const wallet = await (await import('@/app/api/util/prisma')).default.wallet.findUnique({
+      where: { address: body.address },
+    });
+    if (!wallet || wallet.userId !== sessionUserId) {
+      return NextResponse.json({ success: false, error: 'Wallet not found' }, { status: 404 });
     }
-
-    try {
-        const { address, amount, signature } = await req.json();
-
-        if (!address || !amount || !signature) {
-            return NextResponse.json({ success: false, error: 'Invalid request' }, { status: 400 });
-        }
-
-        // Check if the wallet exists and is verified
-        const wallet = await prisma.wallet.findUnique({
-            where: { address },
-            include: { user: true }, // Include the user associated with the wallet
-        });
-
-        if (!wallet) {
-            return NextResponse.json({ success: false, error: 'Wallet not found' }, { status: 404 });
-        }
-
-        // Create a new transaction record in the database with status PENDING
-        const transaction = await prisma.transaction.create({
-            data: {
-                userId: wallet.userId,
-                walletId: wallet.id,
-                amount: parseInt(amount),
-                type: 'DEPOSIT',
-                signature,
-            },
-        });
-
-        // Check transaction status
-        const transactionStatus = await connection.getSignatureStatus(signature);
-
-        // Determine new balance and transaction status
-        const newStatus = transactionStatus?.value?.confirmations ? 'SUCCESS' : 'FAILED';
-        const balanceChange = newStatus === 'SUCCESS' ? parseInt(amount) : 0;
-
-        // Update the transaction status and user balance in the database
-        await prisma.$transaction(async (prisma) => {
-            const trnx = await prisma.transaction.update({
-                where: { id: transaction.id },
-                data: {
-                    status: newStatus,
-                },
-            });
-
-            if (newStatus === 'SUCCESS') {
-                const user = await prisma.user.update({
-                    where: { id: wallet.userId },
-                    data: {
-                        balance: {
-                            increment: balanceChange,
-                        },
-                    },
-                });
-            }
-        });
-
-        return NextResponse.json({ success: true, status: newStatus });
-    } catch (error) {
-        console.error('Failed to process deposit', error);
-        return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
-    }
+    const result = await walletService.deposit(sessionUserId, {
+      address: body.address,
+      amount: body.amount as bigint,
+      signature: body.signature,
+    });
+    return NextResponse.json({ success: result.status === 'SUCCESS', status: result.status });
+  } catch (error) {
+    return handleRouteError(error, 'POST /api/wallet/deposit');
+  }
 }

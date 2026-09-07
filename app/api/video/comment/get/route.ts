@@ -1,46 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { timeSince } from '../../../util/util';
-import prisma from '../../../util/prisma';
+import { z } from 'zod';
+import { handleRouteError } from '@/lib/server/http';
+import { paginationSchema } from '@/lib/server/validation';
+import { commentService } from '@/lib/server/services/social';
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const videoId = searchParams.get('id');
-
-    if (!videoId) {
-        return NextResponse.json({ error: 'Video ID is required' }, { status: 400 });
-    }
-
-    try {
-        // Validate if video exists
-        const video = await prisma.video.findUnique({
-            where: { id: videoId },
-        });
-        if (!video) {
-            return NextResponse.json({ error: 'Invalid video ID' }, { status: 404 });
-        }
-
-        const comments = await prisma.comment.findMany({
-            where: {
-                videoId: videoId,
-            },
-            include: {
-                user: true,
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
-
-        const commentsData = comments.map(comment => ({
-            name: comment.user.name,
-            image: comment.user.image,
-            content: comment.content,
-            timeSince: timeSince(comment.createdAt)
-        }));
-
-        return NextResponse.json({ comments: commentsData }, { status: 200 });
-    } catch (error) {
-        console.error('Error fetching subscriptions:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-    }
+  try {
+    const params = new URL(req.url).searchParams;
+    const videoId = z.string().trim().min(1).max(64).parse(params.get('id'));
+    const { page, limit } = paginationSchema.parse({
+      page: params.get('page') ?? undefined,
+      limit: params.get('limit') ?? undefined,
+    });
+    const comments = await commentService.list(videoId, page, limit);
+    return NextResponse.json({ comments });
+  } catch (error) {
+    return handleRouteError(error, 'GET /api/video/comment/get');
+  }
 }

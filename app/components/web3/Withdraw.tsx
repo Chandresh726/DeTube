@@ -27,7 +27,7 @@ const Withdraw = ({ session }) => {
         setLoading(true);
         try {
             // Notify backend about the withdrawal
-            const res = await withdrawRequest(publicKey.toString(), parseFloat(amount) * LAMPORTS_PER_SOL, session.user.id);
+            const res = await withdrawRequest(publicKey.toString(), Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), session.user.id);
             if (res.success) {
                 refreshBalance();
                 setModalMessage('Your withdrawal was processed successfully.');

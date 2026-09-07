@@ -1,60 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../../util/prisma';
+import { requireSession } from '@/lib/server/auth';
+import { handleRouteError, fail } from '@/lib/server/http';
+import { paginationSchema } from '@/lib/server/validation';
+import { subscriptionService } from '@/lib/server/services/social';
 
 export async function GET(req: NextRequest) {
-    const { searchParams } = new URL(req.url);
-    const id = searchParams.get('id');
-
-    if (!id) {
-        return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const params = new URL(req.url).searchParams;
+    const id = params.get('id');
+    if (id !== null && Number(id) !== sessionUserId) {
+      return fail('FORBIDDEN', 'Cannot read another user\'s feed');
     }
-
-    try {
-        const userId = parseInt(id, 10);
-
-        // Validate if user exists
-        const user = await prisma.user.findUnique({
-            where: { id: Number(userId) },
-        });
-        if (!user) {
-            return NextResponse.json({ error: 'Invalid user ID' }, { status: 404 });
-        }
-
-        // Fetch videos from channels the user is subscribed to, in descending order by creation date
-        const videos = await prisma.video.findMany({
-            where: {
-                channel: {
-                    subscriptions: {
-                        some: {
-                            userId: userId,
-                        },
-                    },
-                },
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-            include: {
-                channel: true,
-            },
-        });
-
-        const videoData = videos.map(video => ({
-            id: video.id,
-            title: video.title,
-            thumbnailUrl: video.thumbnailUrl,
-            createdAt: video.createdAt,
-            views: video.views,
-            channel: {
-                id: video.channel.id,
-                name: video.channel.name,
-                image: video.channel.image,
-            },
-        }));
-
-        return NextResponse.json({ videos: videoData }, { status: 200 });
-    } catch (error) {
-        console.error('Error fetching videos:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-    }
+    const { page, limit } = paginationSchema.parse({
+      page: params.get('page') ?? undefined,
+      limit: params.get('limit') ?? undefined,
+    });
+    const videos = await subscriptionService.feedForUser(sessionUserId, page, limit);
+    return NextResponse.json({ videos });
+  } catch (error) {
+    return handleRouteError(error, 'GET /api/subscriptions/data/video');
+  }
 }

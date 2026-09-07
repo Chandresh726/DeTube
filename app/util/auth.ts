@@ -4,8 +4,10 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from 'bcryptjs';
 import { NextAuthOptions } from "next-auth";
 import prisma from "../api/util/prisma";
+import { env, BCRYPT_ROUNDS } from "@/lib/server/env";
 
 export const authOptions: NextAuthOptions = {
+    secret: env.nextAuthSecret,
     providers: [
         GithubProvider({
             clientId: process.env.GITHUB_ID as string,
@@ -23,78 +25,77 @@ export const authOptions: NextAuthOptions = {
             },
             async authorize(credentials) {
                 if (!credentials?.email || !credentials.password) {
-                    return null; // Return null for missing credentials
+                    return null;
                 }
-
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email },
-                });
-
-                if (!user || !user.password) {
-                    return null; // Return null if no user found
+                const email = credentials.email.trim().toLowerCase();
+                const user = await prisma.user.findUnique({ where: { email } });
+                if (!user?.password) {
+                    return null;
                 }
-
                 const isValidPassword = await bcrypt.compare(credentials.password, user.password);
-
                 if (!isValidPassword) {
-                    return null; // Return null if password is invalid
+                    return null;
                 }
-
                 return {
-                    id: user.id,
+                    id: String(user.id),
                     email: user.email,
                     name: user.name,
                     image: user.image,
                     channelId: user.channelId,
-                };
+                } as any;
             }
         }),
     ],
     callbacks: {
         async signIn({ user, account }) {
-            if (account.provider === 'github' || account.provider === 'google') {
-                if (user) {
-                    await prisma.user.upsert({
-                        where: { email: user.email as string },
-                        update: {
-                            name: user.name as string,
-                            image: user.image as string,
+            if (account?.provider === 'github' || account?.provider === 'google') {
+                if (!user?.email) return false;
+                const email = user.email.trim().toLowerCase();
+                // Only fill null profile fields; never overwrite user-set values.
+                const existing = await prisma.user.findUnique({ where: { email } });
+                if (existing) {
+                    await prisma.user.update({
+                        where: { email },
+                        data: {
+                            name: existing.name ?? user.name ?? undefined,
+                            image: existing.image ?? user.image ?? undefined,
                         },
-                        create: {
-                            email: user.email as string,
-                            name: user.name as string,
-                            image: user.image as string,
+                    });
+                } else {
+                    await prisma.user.create({
+                        data: {
+                            email,
+                            name: user.name ?? null,
+                            image: user.image ?? null,
                         },
                     });
                 }
                 return true;
             }
-
-            // If using CredentialsProvider, just return true if the user exists
-            if (user && user.email) {
+            if (user?.email) {
                 return true;
             }
-            return false; // Ensure invalid credentials are handled
+            return false;
         },
         async session({ session, token }) {
             if (token) {
-                session.user.id = token.id as number;
-                session.user.channelId = token.channelId as number | undefined;
+                (session.user as any).id = token.id as unknown as string;
+                (session.user as any).channelId = token.channelId as number | undefined;
             }
             return session;
         },
         async jwt({ token, user, trigger, session }) {
             if (trigger === "update" && session) {
-                token.channelId = session.channelId;
+                token.channelId = (session as { channelId?: number }).channelId;
             }
-            if (user) {
+            if (user?.email) {
                 const dbUser = await prisma.user.findUnique({
-                    where: { email: user.email as string },
+                    where: { email: user.email.trim().toLowerCase() },
+                    select: { id: true, channelId: true },
                 });
-
                 if (dbUser) {
-                    token.id = dbUser.id;
-                    token.channelId = dbUser.channelId;
+                    (token as any).id = String(dbUser.id);
+                    (token as any).channelId = dbUser.channelId;
                 }
             }
             return token;
@@ -104,7 +105,8 @@ export const authOptions: NextAuthOptions = {
         strategy: 'jwt',
     },
     pages: {
-        signIn: '/logIn', // Redirect to custom login page
+        signIn: '/logIn',
     },
-    // debug: true
 };
+
+export { BCRYPT_ROUNDS };

@@ -53,7 +53,7 @@ const Deposit = ({ session }) => {
             const sendSolInstruction = web3.SystemProgram.transfer({
                 fromPubkey: publicKey,
                 toPubkey: recipientPubKey,
-                lamports: parseFloat(amount) * LAMPORTS_PER_SOL, // Convert SOL to lamports
+                lamports: Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), // Convert SOL to lamports
             });
             transaction.add(sendSolInstruction);
 
@@ -66,7 +66,7 @@ const Deposit = ({ session }) => {
             });
 
             // Notify backend about the deposit
-            const res = await depositRequest(publicKey.toString(), (parseFloat(amount) * LAMPORTS_PER_SOL), signature)
+            const res = await depositRequest(publicKey.toString(), Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), signature)
             if (res.success) {
                 refreshBalance();
                 setModalMessage('Your deposit was processed successfully.');

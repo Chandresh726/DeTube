@@ -1,50 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '../../util/prisma';
-import { authenticateUser } from '../../middleware/auth';
+import { requireSession, assertOwnership } from '@/lib/server/auth';
+import { handleRouteError } from '@/lib/server/http';
+import { channelRegisterSchema } from '@/lib/server/validation';
+import { channelService } from '@/lib/server/services/channels';
 
 export async function POST(req: NextRequest) {
-    const session = await authenticateUser(req);
-    if (session instanceof NextResponse) {
-        return session;
-    }
-
-    const { userId, channelName, description, logo } = await req.json();
-
-    if (!userId || !channelName || !description || !logo) {
-        return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    try {
-        // Check if user already has a channel
-        const existingChannel = await prisma.channel.findUnique({
-            where: {
-                userId: Number(userId),
-            },
-        });
-
-        if (existingChannel) {
-            return NextResponse.json({ error: 'User already has a channel' }, { status: 400 });
-        }
-
-        // Create new channel
-        const newChannel = await prisma.channel.create({
-            data: {
-                name: channelName,
-                image: logo,
-                description,
-                userId: Number(userId)
-            },
-        });
-
-        // Update the user's channelId
-        await prisma.user.update({
-            where: { id: Number(userId) },
-            data: { channelId: newChannel.id },
-        });
-
-        return NextResponse.json({ channelId: newChannel.id }, { status: 200 });
-    } catch (error) {
-        console.error('Error creating channel:', error);
-        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-    }
+  try {
+    const { userId: sessionUserId } = await requireSession();
+    const body = channelRegisterSchema.parse(await req.json());
+    const ownerUserId = assertOwnership(sessionUserId, body.userId);
+    const channel = await channelService.register(ownerUserId, body);
+    return NextResponse.json({ channelId: channel.id }, { status: 201 });
+  } catch (error) {
+    return handleRouteError(error, 'POST /api/channel/register');
+  }
 }

@@ -21,9 +21,12 @@ model User {
   image         String?
   password      String?
   balance       BigInt         @default(0)
-  lockedBalance Int            @default(0)
+  lockedBalance BigInt         @default(0)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  // Legacy denormalized pointer to the user's channel. Source of truth is
+  // Channel.userId (@unique). Kept for backward compat with session/frontend;
+  // do not write directly — use channelService.register.
   channelId     Int?           @unique
   channel       Channel? // A user can create only one channel
   subscriptions Subscription[] // Users can subscribe to multiple channels
@@ -55,20 +58,26 @@ model Video {
   videoUrl     String
   views        Int        @default(0)
   channelId    Int
-  channel      Channel    @relation(fields: [channelId], references: [id])
+  channel      Channel    @relation(fields: [channelId], references: [id], onDelete: Cascade)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   comments     Comment[] // A video can have multiple comments
   reactions    Reaction[] // A video can have multiple reactions (likes or dislikes)
+
+  @@index([channelId])
 }
 
 model Subscription {
   id        Int      @id @default(autoincrement())
   userId    Int
   channelId Int
-  user      User     @relation(fields: [userId], references: [id])
-  channel   Channel  @relation(fields: [channelId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+
+  @@unique([userId, channelId])
+  @@index([userId])
+  @@index([channelId])
 }
 
 model Comment {
@@ -78,8 +87,11 @@ model Comment {
   userId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  video     Video    @relation(fields: [videoId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  video     Video    @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([videoId])
+  @@index([userId])
 }
 
 model Reaction {
@@ -88,10 +100,12 @@ model Reaction {
   userId    Int
   type      ReactionType
   createdAt DateTime     @default(now())
-  video     Video        @relation(fields: [videoId], references: [id])
-  user      User         @relation(fields: [userId], references: [id])
+  video     Video        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([videoId, userId]) // Ensures one reaction per user per video
+  @@index([videoId])
+  @@index([userId])
 }
 
 enum ReactionType {
@@ -103,9 +117,11 @@ model Wallet {
   id           Int           @id @default(autoincrement())
   address      String        @unique // Wallet address
   userId       Int
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
   transactions Transaction[]
+
+  @@index([userId])
 }
 
 model Transaction {
@@ -116,15 +132,18 @@ model Transaction {
   amount        BigInt
   type          TransactionType
   status        TransactionStatus @default(PENDING)
-  signature     String? // Blockchain transaction signature
+  signature     String?           @unique // Blockchain transaction signature (unique => deposit idempotency)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
-  user          User              @relation(fields: [userId], references: [id])
-  channel       Channel?          @relation(fields: [channelId], references: [id])
-  wallet        Wallet?           @relation(fields: [walletId], references: [id])
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  channel       Channel?          @relation(fields: [channelId], references: [id], onDelete: SetNull)
+  wallet        Wallet?           @relation(fields: [walletId], references: [id], onDelete: SetNull)
 
   @@index([channelId])
   @@index([userId])
+  @@index([walletId])
+  @@index([status])
+  @@index([type])
 }
 
 enum TransactionType {
