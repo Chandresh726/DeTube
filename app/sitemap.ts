@@ -1,5 +1,8 @@
 import { MetadataRoute } from 'next'
-import prisma from './api/util/prisma';
+import prisma from '@/lib/server/db';
+import { logError } from '@/lib/server/logger';
+
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://detube.slope726.in'
@@ -90,7 +93,7 @@ async function getAllVideos() {
         });
         return videos;
     } catch (error) {
-        console.error('Error fetching videos for sitemap:', error);
+        logError('sitemap', 'Error fetching videos for sitemap', error);
         return [];
     }
 }
@@ -106,7 +109,7 @@ async function getAllChannels() {
         });
         return channels;
     } catch (error) {
-        console.error('Error fetching channels for sitemap:', error);
+        logError('sitemap', 'Error fetching channels for sitemap', error);
         return [];
     }
 }

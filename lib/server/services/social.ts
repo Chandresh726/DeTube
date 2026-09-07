@@ -1,22 +1,21 @@
-import prisma from "@/app/api/util/prisma";
-import { AppError } from "../http";
+import prisma from "../db";
+import { AppError, isPrismaCode } from "../http";
+import { timeSince } from "../presenters";
 
 export const reactionService = {
-  async get(videoId: string, userId: number) {
-    const video = await prisma.video.findUnique({ where: { id: videoId } });
+  async get(videoId: string, _userId: number) {
+    const [video, reaction] = await Promise.all([
+      prisma.video.findUnique({ where: { id: videoId }, select: { id: true } }),
+      prisma.reaction.findUnique({
+        where: { videoId_userId: { videoId, userId: _userId } },
+      }),
+    ]);
     if (!video) throw new AppError("NOT_FOUND", "Video not found");
-    const reaction = await prisma.reaction.findUnique({
-      where: { videoId_userId: { videoId, userId } },
-    });
     return reaction?.type ?? null;
   },
 
   async set(videoId: string, userId: number, type: "LIKE" | "DISLIKE") {
-    const [user, video] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId } }),
-      prisma.video.findUnique({ where: { id: videoId } }),
-    ]);
-    if (!user) throw new AppError("NOT_FOUND", "User not found");
+    const video = await prisma.video.findUnique({ where: { id: videoId }, select: { id: true } });
     if (!video) throw new AppError("NOT_FOUND", "Video not found");
     const existing = await prisma.reaction.findUnique({
       where: { videoId_userId: { videoId, userId } },
@@ -29,16 +28,23 @@ export const reactionService = {
       });
       return { status: "updated" as const };
     }
-    await prisma.reaction.create({ data: { videoId, userId, type } });
+    try {
+      await prisma.reaction.create({ data: { videoId, userId, type } });
+    } catch (e: unknown) {
+      if (isPrismaCode(e, "P2002")) return { status: "exists" as const };
+      if (isPrismaCode(e, "P2003")) throw new AppError("NOT_FOUND", "Video not found");
+      throw e;
+    }
     return { status: "created" as const };
   },
 
   async remove(videoId: string, userId: number) {
-    const existing = await prisma.reaction.findUnique({
-      where: { videoId_userId: { videoId, userId } },
-    });
-    if (!existing) throw new AppError("NOT_FOUND", "Reaction not found");
-    await prisma.reaction.delete({ where: { videoId_userId: { videoId, userId } } });
+    try {
+      await prisma.reaction.delete({ where: { videoId_userId: { videoId, userId } } });
+    } catch (e: unknown) {
+      if (isPrismaCode(e, "P2025")) throw new AppError("NOT_FOUND", "Reaction not found");
+      throw e;
+    }
   },
 };
 
@@ -58,8 +64,7 @@ export const subscriptionService = {
       const created = await prisma.subscription.create({ data: { userId, channelId } });
       return { status: "created" as const, subscription: created };
     } catch (e: unknown) {
-      const { Prisma } = await import("@/app/generated/prisma/client");
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      if (isPrismaCode(e, "P2002")) {
         return { status: "exists" as const, subscription: null };
       }
       throw e;
@@ -72,27 +77,26 @@ export const subscriptionService = {
         where: { userId_channelId: { userId, channelId } },
       });
     } catch (e: unknown) {
-      const { Prisma } = await import("@/app/generated/prisma/client");
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2025") {
+      if (isPrismaCode(e, "P2025")) {
         throw new AppError("NOT_FOUND", "Subscription not found");
       }
       throw e;
     }
   },
 
-  async listForUser(userId: number) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new AppError("NOT_FOUND", "Invalid user ID");
+  async listForUser(userId: number, page?: number, limit?: number) {
+    const paginated = page !== undefined || limit !== undefined;
+    const p = page ?? 1;
+    const l = limit ?? 50;
     const subs = await prisma.subscription.findMany({
       where: { userId },
+      ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
       select: { channel: { select: { id: true, name: true, image: true } } },
     });
     return subs.map((s) => ({ id: s.channel.id, name: s.channel.name, image: s.channel.image }));
   },
 
   async feedForUser(userId: number, page = 1, limit = 20) {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new AppError("NOT_FOUND", "Invalid user ID");
     const videos = await prisma.video.findMany({
       where: { channel: { subscriptions: { some: { userId } } } },
       orderBy: { createdAt: "desc" },
@@ -113,48 +117,48 @@ export const subscriptionService = {
 
 export const commentService = {
   async add(videoId: string, userId: number, content: string) {
-    const [user, video] = await Promise.all([
-      prisma.user.findUnique({ where: { id: userId } }),
-      prisma.video.findUnique({ where: { id: videoId } }),
-    ]);
-    if (!user) throw new AppError("NOT_FOUND", "Invalid user ID");
-    if (!video) throw new AppError("NOT_FOUND", "Invalid video ID");
-    const created = await prisma.comment.create({
-      data: { content, videoId, userId },
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        user: { select: { id: true, name: true, image: true } },
-      },
-    });
-    return {
-      id: created.id,
-      content: created.content,
-      createdAt: created.createdAt,
-      userId: created.user.id,
-      name: created.user.name,
-      image: created.user.image,
-    };
+    try {
+      const created = await prisma.comment.create({
+        data: { content, videoId, userId },
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          user: { select: { id: true, name: true, image: true } },
+        },
+      });
+      return {
+        id: created.id,
+        content: created.content,
+        createdAt: created.createdAt,
+        userId: created.user.id,
+        name: created.user.name,
+        image: created.user.image,
+      };
+    } catch (e: unknown) {
+      if (isPrismaCode(e, "P2003")) throw new AppError("NOT_FOUND", "Video or user not found");
+      throw e;
+    }
   },
 
   async list(videoId: string, page = 1, limit = 50) {
-    const video = await prisma.video.findUnique({ where: { id: videoId } });
+    const [video, comments] = await Promise.all([
+      prisma.video.findUnique({ where: { id: videoId }, select: { id: true } }),
+      prisma.comment.findMany({
+        where: { videoId },
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          userId: true,
+          user: { select: { name: true, image: true } },
+        },
+      }),
+    ]);
     if (!video) throw new AppError("NOT_FOUND", "Invalid video ID");
-    const comments = await prisma.comment.findMany({
-      where: { videoId },
-      orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
-      select: {
-        id: true,
-        content: true,
-        createdAt: true,
-        userId: true,
-        user: { select: { name: true, image: true } },
-      },
-    });
-    const { timeSince } = await import("../presenters");
     return comments.map((c) => ({
       id: c.id,
       userId: c.userId,

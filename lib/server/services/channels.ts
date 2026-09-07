@@ -1,32 +1,38 @@
-import prisma from "@/app/api/util/prisma";
+import prisma from "../db";
 import { AppError } from "../http";
 import { formatViews, timeSince } from "../presenters";
 
 export const channelService = {
-  async getById(channelId: number) {
-    const channel = await prisma.channel.findUnique({
-      where: { id: channelId },
-      select: {
-        id: true,
-        name: true,
-        image: true,
-        description: true,
-        videos: {
-          select: {
-            id: true,
-            title: true,
-            description: true,
-            thumbnailUrl: true,
-            videoUrl: true,
-            views: true,
-            createdAt: true,
+  async getById(channelId: number, page?: number, limit?: number) {
+    const paginated = page !== undefined || limit !== undefined;
+    const p = page ?? 1;
+    const l = limit ?? 20;
+    const [channel, subscriberCount] = await Promise.all([
+      prisma.channel.findUnique({
+        where: { id: channelId },
+        select: {
+          id: true,
+          name: true,
+          image: true,
+          description: true,
+          videos: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              thumbnailUrl: true,
+              videoUrl: true,
+              views: true,
+              createdAt: true,
+            },
+            orderBy: { createdAt: "desc" },
+            ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
           },
-          orderBy: { createdAt: "desc" },
         },
-      },
-    });
+      }),
+      prisma.subscription.count({ where: { channelId } }),
+    ]);
     if (!channel) throw new AppError("NOT_FOUND", "Channel not found");
-    const subscriberCount = await prisma.subscription.count({ where: { channelId } });
     return {
       id: channel.id,
       name: channel.name,

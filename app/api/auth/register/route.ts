@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/lib/server/db';
 import bcrypt from 'bcryptjs';
-import prisma from '../../util/prisma';
-import { handleRouteError, fail } from '@/lib/server/http';
+import { handleRouteError, fail, isPrismaCode } from '@/lib/server/http';
 import { registerSchema } from '@/lib/server/validation';
-import { BCRYPT_ROUNDS } from '@/lib/server/env';
+import { BCRYPT_ROUNDS, RATE_LIMIT_MAX_AUTH } from '@/lib/server/env';
+import { rateLimitByIp, getClientIp } from '@/lib/server/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
+    rateLimitByIp('auth:register', getClientIp(req), RATE_LIMIT_MAX_AUTH);
     const body = registerSchema.parse(await req.json());
     const hashedPassword = await bcrypt.hash(body.password, BCRYPT_ROUNDS);
     try {
@@ -14,8 +16,7 @@ export async function POST(req: NextRequest) {
         data: { email: body.email, password: hashedPassword, name: body.name },
       });
     } catch (e: unknown) {
-      const { Prisma } = await import('@/app/generated/prisma/client');
-      if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      if (isPrismaCode(e, 'P2002')) {
         return fail('CONFLICT', 'User already exists with this email');
       }
       throw e;

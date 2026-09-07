@@ -1,5 +1,5 @@
-import prisma from "@/app/api/util/prisma";
-import { AppError } from "../http";
+import prisma from "../db";
+import { AppError, isPrismaCode } from "../http";
 import { TOP_SUPPORTERS_LIMIT } from "../env";
 import { formatViews, timeSince, toVideoCard } from "../presenters";
 
@@ -14,20 +14,30 @@ export const videoService = {
     // Read path first (404 before side effects), then increment views.
     const existing = await prisma.video.findUnique({
       where: { id: videoId },
-      include: { channel: { select: { id: true, name: true, image: true } } },
+      select: { id: true, channelId: true },
     });
     if (!existing) throw new AppError("NOT_FOUND", "Video not found");
 
-    const [video, likeCount, dislikeCount, subscriberCount] = await Promise.all([
+    const [video, reactionGroups, subscriberCount] = await Promise.all([
       prisma.video.update({
         where: { id: videoId },
         data: { views: { increment: 1 } },
         include: { channel: { select: { id: true, name: true, image: true } } },
       }),
-      prisma.reaction.count({ where: { videoId, type: "LIKE" } }),
-      prisma.reaction.count({ where: { videoId, type: "DISLIKE" } }),
+      prisma.reaction.groupBy({
+        by: ["type"],
+        where: { videoId },
+        _count: { type: true },
+      }),
       prisma.subscription.count({ where: { channelId: existing.channelId } }),
     ]);
+
+    let likeCount = 0;
+    let dislikeCount = 0;
+    for (const g of reactionGroups) {
+      if (g.type === "LIKE") likeCount = g._count.type;
+      else if (g.type === "DISLIKE") dislikeCount = g._count.type;
+    }
 
     // Aggregate top supporters in SQL instead of in-memory reduce+sort.
     const grouped = await prisma.transaction.groupBy({
@@ -37,10 +47,13 @@ export const videoService = {
       orderBy: { _sum: { amount: "desc" } },
       take: TOP_SUPPORTERS_LIMIT,
     });
-    const users = await prisma.user.findMany({
-      where: { id: { in: grouped.map((g) => g.userId) } },
-      select: { id: true, name: true, image: true },
-    });
+    const users =
+      grouped.length > 0
+        ? await prisma.user.findMany({
+            where: { id: { in: grouped.map((g) => g.userId) } },
+            select: { id: true, name: true, image: true },
+          })
+        : [];
     const byId = new Map(users.map((u) => [u.id, u]));
     const supporters = grouped.map((g) => ({
       id: g.userId,
@@ -122,14 +135,19 @@ export const videoService = {
       return created;
     } catch (e) {
       // Let handleRouteError map P2002 (duplicate id) -> 409, P2003 -> 404.
+      if (isPrismaCode(e, "P2002")) throw new AppError("CONFLICT", "Video already exists");
       throw e;
     }
   },
 
-  async getLiked(userId: number) {
+  async getLiked(userId: number, page?: number, limit?: number) {
+    const paginated = page !== undefined || limit !== undefined;
+    const p = page ?? 1;
+    const l = limit ?? 50;
     const liked = await prisma.reaction.findMany({
       where: { userId, type: "LIKE" },
       orderBy: { createdAt: "desc" },
+      ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
       select: {
         createdAt: true,
         video: {

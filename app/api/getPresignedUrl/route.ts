@@ -4,10 +4,13 @@ import { handleRouteError } from '@/lib/server/http';
 import { presignedUrlSchema } from '@/lib/server/validation';
 import { buildObjectKey, getStorageGateway, isAllowedContentType } from '@/lib/server/storage';
 import { AppError } from '@/lib/server/http';
+import { rateLimitByUser } from '@/lib/server/rate-limit';
+import { RATE_LIMIT_MAX_PRESIGNED } from '@/lib/server/env';
 
 export async function POST(req: NextRequest) {
   try {
     const { userId } = await requireSession();
+    rateLimitByUser('uploads:presigned', userId, RATE_LIMIT_MAX_PRESIGNED);
     const body = presignedUrlSchema.parse(await req.json());
     if (!isAllowedContentType(body.fileType, body.contentType)) {
       throw new AppError('BAD_REQUEST', 'Invalid content type for file type');

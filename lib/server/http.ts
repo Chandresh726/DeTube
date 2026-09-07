@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@/app/generated/prisma/client";
 import { ZodError } from "zod";
+import { logError, logWarn } from "./logger";
 
 export type ErrorCode =
   | "BAD_REQUEST"
@@ -59,9 +60,16 @@ function isPrismaError(e: unknown): e is Prisma.PrismaClientKnownRequestError {
   return e instanceof Prisma.PrismaClientKnownRequestError;
 }
 
+export function isPrismaCode(e: unknown, code: string): boolean {
+  return isPrismaError(e) && e.code === code;
+}
+
 export function handleRouteError(error: unknown, route: string): NextResponse {
   if (error instanceof AppError) {
-    if (error.status >= 500) console.error(`[${route}]`, error);
+    if (error.status >= 500) logError(route, error.message, { code: error.code });
+    else if (error.code === "FORBIDDEN" || error.code === "UNAUTHORIZED" || error.code === "CONFLICT") {
+      logWarn(route, error.message, { code: error.code });
+    }
     return fail(error.code, error.message, error.details);
   }
   if (error instanceof ZodError) {
@@ -79,16 +87,11 @@ export function handleRouteError(error: unknown, route: string): NextResponse {
       case "P2003":
         return fail("NOT_FOUND", "Referenced resource not found");
       default:
-        console.error(`[${route}] Prisma ${error.code}`, error.message);
+        logError(route, `Prisma ${error.code}`, error.message);
         return fail("INTERNAL", "Internal server error");
     }
   }
-  const message = error instanceof Error ? error.message : "Unknown error";
-  // Known encoding errors from bs58 / PublicKey / BigInt should be 400, never 500.
-  if (/non-base58|invalid public key|cannot convert|invalid bigint|invalid digit/i.test(message)) {
-    return fail("BAD_REQUEST", "Invalid request encoding");
-  }
-  console.error(`[${route}]`, error);
+  logError(route, error instanceof Error ? error.message : "Unknown error", error);
   return fail("INTERNAL", "Internal server error");
 }
 

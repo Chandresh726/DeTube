@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "./env";
+import bs58 from "bs58";
+import { DEFAULT_PAGE_SIZE, FEED_DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "./env";
 
 const idParam = z.coerce.number().int().positive();
 
@@ -8,23 +9,60 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(DEFAULT_PAGE_SIZE),
 });
 
+export const feedPaginationSchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(MAX_PAGE_SIZE).default(FEED_DEFAULT_PAGE_SIZE),
+});
+
 export const userIdSchema = idParam;
 export const channelIdSchema = idParam;
 
+function isBase58(value: string): boolean {
+  try {
+    bs58.decode(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const base58String = (min: number, max: number) =>
+  z
+    .string()
+    .trim()
+    .min(min)
+    .max(max)
+    .refine(isBase58, "must be base58-encoded");
+
 /** Lamports as positive integer. Accepts number|string|bigint, returns bigint. */
 export const lamportsSchema = z
-  .union([z.number(), z.string(), z.bigint()])
-  .refine((v) => {
-    try {
-      const b = BigInt(v as string);
-      return b > 0n && b <= BigInt(Number.MAX_SAFE_INTEGER);
-    } catch {
-      return false;
-    }
-  }, "amount must be a positive integer in lamports")
-  .transform((v) => BigInt(v as string));
+  .union([z.bigint(), z.string().trim().min(1), z.number()])
+  .refine(
+    (v) => {
+      if (typeof v === "number") {
+        return Number.isInteger(v) && v > 0 && v <= Number.MAX_SAFE_INTEGER;
+      }
+      try {
+        const b = typeof v === "bigint" ? v : BigInt(v as string);
+        return b > 0n && b <= BigInt(Number.MAX_SAFE_INTEGER);
+      } catch {
+        return false;
+      }
+    },
+    "amount must be a positive integer in lamports",
+  )
+  .transform((v) => (typeof v === "bigint" ? v : typeof v === "number" ? BigInt(v) : BigInt(v as string)));
 
 const text = (min: number, max: number) => z.string().trim().min(min).max(max);
+
+/** Legacy client-supplied user id: accepted during migration, must match session. */
+export const legacyUserId = z
+  .union([z.number().int().positive(), z.string().trim().regex(/^\d+$/)])
+  .optional();
+
+export const videoIdString = z.string().trim().min(1).max(64);
+export const publicKeyString = base58String(32, 64);
+export const signatureString = base58String(64, 128);
 
 export const registerSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
@@ -33,7 +71,7 @@ export const registerSchema = z.object({
 });
 
 export const channelRegisterSchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
+  userId: legacyUserId,
   channelName: text(1, 80),
   description: text(1, 1000),
   logo: z.string().trim().url().max(2048),
@@ -49,63 +87,67 @@ export const videoAddSchema = z.object({
 });
 
 export const commentAddSchema = z.object({
-  videoId: z.string().trim().min(1).max(64),
-  userId: z.union([z.number(), z.string()]).optional(),
+  videoId: videoIdString,
+  userId: legacyUserId,
   content: text(1, 5000),
 });
 
 export const reactionSetSchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
-  videoId: z.string().trim().min(1).max(64),
+  userId: legacyUserId,
+  videoId: videoIdString,
   type: z.enum(["LIKE", "DISLIKE"]),
 });
 
 export const reactionLegacySchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
-  videoId: z.string().trim().min(1).max(64),
+  userId: legacyUserId,
+  videoId: videoIdString,
   status: z.enum(["check", "like", "dislike", "remove"]),
 });
 
 export const subscribeSchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
+  userId: legacyUserId,
   channelId: z.coerce.number().int().positive(),
   status: z.enum(["check", "sub", "unsub"]),
 });
 
 export const thanksSchema = z.object({
   amount: lamportsSchema,
-  userId: z.union([z.number(), z.string()]).optional(),
+  userId: legacyUserId,
   channelId: z.coerce.number().int().positive(),
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });
 
 export const walletVerifySchema = z.object({
-  publicKey: z.string().trim().min(32).max(64),
-  signature: z.string().trim().min(64).max(128),
+  publicKey: publicKeyString,
+  signature: signatureString,
   message: z.string().trim().min(1).max(512),
-  userId: z.union([z.number(), z.string()]).optional(),
+  userId: legacyUserId,
 });
 
 export const walletCheckSchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
-  publicKey: z.string().trim().min(32).max(64),
+  userId: legacyUserId,
+  publicKey: publicKeyString,
 });
 
 export const depositSchema = z.object({
-  address: z.string().trim().min(32).max(64),
+  address: publicKeyString,
   amount: lamportsSchema,
-  signature: z.string().trim().min(64).max(128),
+  signature: signatureString,
 });
 
 export const withdrawSchema = z.object({
-  userId: z.union([z.number(), z.string()]).optional(),
-  walletAddress: z.string().trim().min(32).max(64),
+  userId: legacyUserId,
+  walletAddress: publicKeyString,
   amount: lamportsSchema,
+  idempotencyKey: z.string().trim().min(8).max(128).optional(),
 });
+
+const contentTypeString = z.string().trim().min(3).max(128);
 
 export const presignedUrlSchema = z.object({
   fileType: z.enum(["thumbnail", "temp-video", "channel-logo"]),
   id: z.string().trim().uuid(),
-  contentType: z.string().trim().min(3).max(128),
+  contentType: contentTypeString,
 });
 
 export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {

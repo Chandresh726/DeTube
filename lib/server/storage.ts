@@ -55,8 +55,13 @@ export function buildObjectKey(fileType: string, ownerUserId: number, uuid: stri
 }
 
 export function isAllowedContentType(fileType: string, contentType: string): boolean {
-  if (fileType === "temp-video") return contentType.startsWith("video/");
-  return contentType.startsWith("image/");
+  const normalized = contentType.split(";")[0]?.trim().toLowerCase() ?? "";
+  if (!normalized.includes("/")) return false;
+  if (normalized === "image/svg+xml" || normalized.endsWith("+xml")) return false;
+  if (fileType === "temp-video") {
+    return normalized.startsWith("video/") && normalized !== "video/svg+xml";
+  }
+  return normalized.startsWith("image/");
 }
 
 export function isHttpsUrlFromPublicBucket(url: string): boolean {

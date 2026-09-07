@@ -3,6 +3,8 @@ import { requireSession, assertOwnership } from '@/lib/server/auth';
 import { handleRouteError } from '@/lib/server/http';
 import { reactionLegacySchema } from '@/lib/server/validation';
 import { reactionService } from '@/lib/server/services/social';
+import { rateLimitByUser } from '@/lib/server/rate-limit';
+import { RATE_LIMIT_MAX_WRITE } from '@/lib/server/env';
 
 /**
  * Canonical reaction endpoint (authenticated).
@@ -12,6 +14,7 @@ import { reactionService } from '@/lib/server/services/social';
 export async function POST(req: NextRequest) {
   try {
     const { userId: sessionUserId } = await requireSession();
+    rateLimitByUser('reaction:legacy', sessionUserId, RATE_LIMIT_MAX_WRITE);
     const body = reactionLegacySchema.parse(await req.json());
     const userId = assertOwnership(sessionUserId, body.userId);
 

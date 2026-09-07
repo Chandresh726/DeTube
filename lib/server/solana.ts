@@ -40,7 +40,12 @@ export class SolanaRpcGateway implements SolanaGateway {
     );
     const idx = keys.indexOf(expectedRecipient);
     if (idx === -1) return { ok: false, reason: "recipient not in transaction" };
-    const credited = BigInt(post[idx]!) - BigInt(pre[idx]!);
+    const preVal = pre[idx];
+    const postVal = post[idx];
+    if (preVal === undefined || postVal === undefined) {
+      return { ok: false, reason: "balance data missing" };
+    }
+    const credited = BigInt(postVal) - BigInt(preVal);
     if (credited < expectedLamports) {
       return { ok: false, actualLamports: credited, reason: "insufficient credited amount" };
     }

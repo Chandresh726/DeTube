@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { getServerSession, type Session } from "next-auth";
 import { authOptions } from "@/app/util/auth";
 import { AppError } from "./http";
@@ -37,24 +36,39 @@ export function assertOwnership(sessionUserId: number, suppliedId: unknown, fiel
   if (suppliedId === undefined || suppliedId === null || suppliedId === "") {
     return sessionUserId;
   }
-  const n = Number(suppliedId);
-  if (!Number.isInteger(n) || n <= 0) {
-    throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+  if (typeof suppliedId === "number") {
+    if (!Number.isInteger(suppliedId) || suppliedId <= 0) {
+      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+    }
+    if (suppliedId !== sessionUserId) {
+      throw new AppError("FORBIDDEN", "Cannot act on behalf of another user");
+    }
+    return suppliedId;
   }
-  if (n !== sessionUserId) {
-    throw new AppError("FORBIDDEN", "Cannot act on behalf of another user");
+  if (typeof suppliedId === "string") {
+    const trimmed = suppliedId.trim();
+    if (!/^\d+$/.test(trimmed)) {
+      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+    }
+    const n = Number(trimmed);
+    if (!Number.isSafeInteger(n) || n <= 0) {
+      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+    }
+    if (n !== sessionUserId) {
+      throw new AppError("FORBIDDEN", "Cannot act on behalf of another user");
+    }
+    return n;
   }
-  return n;
+  throw new AppError("BAD_REQUEST", `Invalid ${field}`);
 }
 
-/** Legacy helper kept for incremental migration (returns NextResponse on failure). */
-export async function authenticateUserLegacy(): Promise<AuthContext | NextResponse> {
-  try {
-    return await requireSession();
-  } catch (e) {
-    if (e instanceof AppError && e.code === "UNAUTHORIZED") {
-      return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-    throw e;
-  }
+/**
+ * Ownership guard for `?id=` query params on self-scoped GET routes.
+ * Returns the session user id; throws FORBIDDEN on mismatch, BAD_REQUEST on malformed.
+ * Backend-only helper — query `id` is redundant (identity comes from session) and
+ * exists only for backward compat with existing frontend callers.
+ */
+export function assertQueryOwnership(sessionUserId: number, rawId: string | null, resource = "resource"): number {
+  if (rawId === null || rawId === "") return sessionUserId;
+  return assertOwnership(sessionUserId, rawId, "id");
 }

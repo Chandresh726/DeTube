@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitReturns": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "lib/server/**/*.ts",
+    "app/api/**/*.ts",
+    "app/util/auth.ts",
+    "app/api/util/prisma.ts",
+    "app/sitemap.ts",
+    "prisma/**/*.ts",
+    "types/**/*.ts",
+    "next-env.d.ts"
+  ],
+  "exclude": ["node_modules", ".next", "app/generated/prisma"]
+}

@@ -3,10 +3,13 @@ import { requireSession, assertOwnership } from '@/lib/server/auth';
 import { handleRouteError } from '@/lib/server/http';
 import { commentAddSchema } from '@/lib/server/validation';
 import { commentService } from '@/lib/server/services/social';
+import { rateLimitByUser } from '@/lib/server/rate-limit';
+import { RATE_LIMIT_MAX_WRITE } from '@/lib/server/env';
 
 export async function POST(req: NextRequest) {
   try {
     const { userId: sessionUserId } = await requireSession();
+    rateLimitByUser('comment:add', sessionUserId, RATE_LIMIT_MAX_WRITE);
     const body = commentAddSchema.parse(await req.json());
     const userId = assertOwnership(sessionUserId, body.userId);
     const comment = await commentService.add(body.videoId, userId, body.content);
