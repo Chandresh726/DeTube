@@ -2,21 +2,32 @@
 import { useSession } from 'next-auth/react';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 import { addSubscription, checkIfSubscribed } from '../../util/fetch/subscription';
+import { Button } from '@/components/ui/button';
 
-const SubscribeButton = ({ channelId }) => {
+const SubscribeButton = ({ channelId }: { channelId: number }) => {
     const { data: session } = useSession();
     const [isSubscribed, setIsSubscribed] = useState(false);
+    const [pending, setPending] = useState(false);
     const router = useRouter();
 
     useEffect(() => {
+        let cancelled = false;
         const checkSubscription = async () => {
-            if (session) {
-                const data = await checkIfSubscribed(session.user.id, channelId);
-                setIsSubscribed(data);
+            if (session?.user?.id) {
+                try {
+                    const data = await checkIfSubscribed(session.user.id, channelId);
+                    if (!cancelled) setIsSubscribed(Boolean(data));
+                } catch {
+                    // keep default unsubscribed on failure
+                }
             }
         };
         checkSubscription();
+        return () => {
+            cancelled = true;
+        };
     }, [session, channelId]);
 
     const handleSubscribe = async () => {
@@ -24,26 +35,30 @@ const SubscribeButton = ({ channelId }) => {
             router.push('/logIn');
             return;
         }
-
-        const newStatus = !isSubscribed;
-        setIsSubscribed(newStatus);
-
-        // Update the subscription status on the backend
-        const res = await addSubscription(session.user.id, channelId, isSubscribed ? 'unsub' : 'sub');
-        if (res.ok) {
-            setIsSubscribed(!newStatus);
+        const previous = isSubscribed;
+        const next = !previous;
+        setIsSubscribed(next);
+        setPending(true);
+        try {
+            await addSubscription(session.user.id, channelId, previous ? 'unsub' : 'sub');
+        } catch {
+            setIsSubscribed(previous);
+            toast.error('Subscription update failed');
+        } finally {
+            setPending(false);
         }
     };
 
     return (
-        <div className={`flex flex-col mt-4 items-center w-full rounded-3xl ${isSubscribed ? 'bg-slate-600' : ' bg-red-500 text-gray-800'}`}>
-            <button
-                onClick={handleSubscribe}
-                className={`py-2 rounded-lg font-semibold transition-colors duration-300 hover:opacity-75`}
-            >
-                {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
-            </button>
-        </div>
+        <Button
+            onClick={handleSubscribe}
+            disabled={pending}
+            variant={isSubscribed ? 'secondary' : 'destructive'}
+            className="mt-4 w-full rounded-full"
+            aria-pressed={isSubscribed}
+        >
+            {isSubscribed ? 'Unsubscribe' : 'Subscribe'}
+        </Button>
     );
 };
 

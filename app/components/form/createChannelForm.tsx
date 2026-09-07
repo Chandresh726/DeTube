@@ -1,143 +1,159 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { MdUpload } from "react-icons/md";
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react';
 import { v4 as uuidv4 } from 'uuid';
+import { toast } from 'sonner';
 import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/r2';
 import { createChannel } from '../../util/fetch/channel';
-import { useTheme } from '../wrapper/ThemeContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const CreateChannelForm = ({ userId }: { userId: Number }) => {
-  const { theme } = useTheme();
-  const { data: session, status, update } = useSession()
+const CreateChannelForm = ({ userId }: { userId: number }) => {
+  const { data: session, update } = useSession()
 
   const [channelName, setChannelName] = useState('');
   const [description, setDescription] = useState('');
   const [logo, setLogo] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [isFormValid, setIsFormValid] = useState(false);
   const [loadingFlag, setLoadingFlag] = useState(false);
 
   const router = useRouter()
-  const logoid = uuidv4();
+  const [logoId] = useState(() => uuidv4());
 
-  useEffect(() => {
-    setIsFormValid(channelName !== '' && description !== '' && logo !== null);
-  }, [channelName, description, logo]);
+  const isFormValid = channelName !== '' && description !== '' && logo !== null && !uploadingLogo;
+  void session;
 
-  const handleImageChange = async (event: any) => {
+  const handleImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      try {
-        setUploadingLogo(true)
-        // Send request to get presigned URL
-        const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoid, file.type);
+    if (!file) return;
+    try {
+      setUploadingLogo(true)
+      const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoId, file.type);
+      const uploadResponse = await hitPresignedurl(presignedUrl, file)
 
-        // Upload the file using the presigned URL
-        const uploadResponse = await hitPresignedurl(presignedUrl, file)
-
-        if (uploadResponse.ok) {
-          setLogo(url)
-        } else {
-          console.error('Upload failed with status:', uploadResponse.status);
-        }
-        setUploadingLogo(false)
-      } catch (error) {
-        console.error('Error:', error);
+      if (uploadResponse.ok) {
+        setLogo(url)
+      } else {
+        toast.error('Logo upload failed');
       }
+    } catch (error) {
+      toast.error('Logo upload failed');
+    } finally {
+      setUploadingLogo(false)
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    setLoadingFlag(true)
     e.preventDefault();
     if (!logo) {
-      console.error('Logo is required');
+      toast.error('Channel logo is required');
       return;
     }
+    setLoadingFlag(true)
     let redirectPath = "/"
     try {
       const response = await createChannel(userId, channelName, description, logo);
       if (response && response.channelId) {
         redirectPath = '/channel/' + response.channelId
-        update({ channelId: response.channelId });
+        await update({ channelId: response.channelId });
       } else {
-        console.error('Failed to update Session');
+        toast.error('Failed to create channel');
       }
     } catch (error) {
-      console.error('Error creating channel:', error);
+      toast.error('Failed to create channel');
+    } finally {
+      setLoadingFlag(false)
     }
     router.push(redirectPath)
   };
 
   return (
-    <div className={`p-6 max-w-4xl mx-auto mt-10 ${theme==='dark'?'text-gray-400':'text-black'}`}>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="relative flex space-x-4">
-          <div className='m-2'>
-            <div className="my-2 text-lg">Channel Logo</div>
-            <div className="relative h-56 w-56 aspect-square border border-gray-600 rounded-lg overflow-hidden">
-              {uploadingLogo ? (
-                <div className="skeleton h-full w-full"></div>
-              ) : (logo ?
-                <img src={logo as string} alt="Logo Preview" className="w-full h-full object-cover" /> : <div className="h-full w-full"></div>
+    <Card className="mx-auto mt-10 max-w-4xl">
+      <CardHeader>
+        <CardTitle>Create Channel</CardTitle>
+        <CardDescription>Set up your presence on DeTube</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <Field className="sm:max-w-60">
+                <FieldLabel htmlFor="channel-logo">Channel Logo</FieldLabel>
+                <div className="relative aspect-square size-56 overflow-hidden rounded-xl border">
+                  {uploadingLogo ? (
+                    <Skeleton className="h-full w-full rounded-none" />
+                  ) : logo ? (
+                    <Avatar className="size-full rounded-none">
+                      <AvatarImage src={logo} alt="Channel logo preview" className="object-cover" />
+                      <AvatarFallback>{channelName.slice(0, 2).toUpperCase() || 'CH'}</AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-full w-full bg-muted" />
+                  )}
+                  <label htmlFor="channel-logo" className="absolute inset-0 flex cursor-pointer items-center justify-center bg-background/60 text-sm font-medium opacity-100 transition-opacity hover:bg-background/80">
+                    <Input
+                      id="channel-logo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageChange}
+                      disabled={uploadingLogo}
+                      className="absolute inset-0 cursor-pointer opacity-0"
+                    />
+                    {uploadingLogo ? 'Uploading...'
+                      : (logo ? 'Change Logo'
+                        : (<span className="flex items-center gap-1">
+                          Upload
+                          <MdUpload aria-hidden />
+                        </span>))
+                    }
+                  </label>
+                </div>
+              </Field>
+              <div className="flex w-full flex-col gap-4">
+                <Field>
+                  <FieldLabel htmlFor="channel-name">Channel Name</FieldLabel>
+                  <Input
+                    id="channel-name"
+                    type="text"
+                    value={channelName}
+                    onChange={(e) => setChannelName(e.target.value)}
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="channel-desc">Description</FieldLabel>
+                  <Textarea
+                    id="channel-desc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    required
+                    rows={4}
+                  />
+                </Field>
+              </div>
+            </div>
+            <Button type="submit" className="w-full" disabled={!isFormValid || loadingFlag}>
+              {loadingFlag ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Processing
+                </>
+              ) : (
+                "Create Channel"
               )}
-              <label className="absolute inset-0 flex items-center justify-center cursor-pointer">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  disabled={uploadingLogo}
-                  className="opacity-0 absolute inset-0"
-                />
-                {uploadingLogo ? 'Uploading...'
-                  : (logo ? 'Change Logo'
-                    : (<div className='flex items-center justify-center'>
-                      Upload
-                      <MdUpload className='w-5 h-5 mx-1' />
-                    </div>))
-                }
-              </label>
-            </div>
-          </div>
-          <div className='m-2 w-full'>
-            <div>
-              <div className="my-2 text-lg">Channel Name</div>
-              <input
-                type="text"
-                value={channelName}
-                onChange={(e) => setChannelName(e.target.value)}
-                required
-                className="input input-bordered block w-full"
-              />
-            </div>
-            <div>
-              <div className="my-2 text-lg">Description</div>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                className="textarea textarea-bordered block w-full"
-                rows={4}
-              />
-            </div>
-          </div>
-        </div>
-        <button
-          type="submit"
-          className={`w-full py-2 px-4 font-semibold rounded-lg shadow-md ${isFormValid ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
-          disabled={!isFormValid}
-        >
-          {loadingFlag ?
-            <div className="flex justify-center items-center space-x-2">
-              <span>Processing</span>
-              <div className="loading loading-spinner"></div>
-            </div>
-            : <div>Create Channel</div>}
-        </button>
-      </form>
-    </div>
+            </Button>
+          </FieldGroup>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

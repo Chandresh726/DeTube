@@ -1,43 +1,31 @@
-import React from 'react'
-import { useTheme } from '../wrapper/ThemeContext';
+"use client";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+
+const sections = ['Deposit Transactions', 'Withdraw Transactions', 'Thanks Transactions'];
 
 const StatementLoading = () => {
-    const { theme } = useTheme();
-    return (
-        <div className={`${theme === 'dark' ? 'text-white' : 'text-black'}`}>
-            <div className='text-center text-3xl my-2 font-bold'>Your Transactions</div>
+  return (
+    <div aria-busy="true" aria-label="Loading transactions">
+      <div className="my-2 text-center text-3xl font-bold">Your Transactions</div>
+      <div className="flex flex-col gap-4">
+        {sections.map((title) => (
+          <Card key={title}>
+            <CardHeader>
+              <CardTitle className="text-xl font-medium">{title}</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2">
+              <Separator className="my-1" />
+              <Skeleton className="my-2 h-8 w-full" />
+              <Skeleton className="my-2 h-8 w-full" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
 
-            <div className={`collapse collapse-arrow my-4 ${theme === 'dark' ? 'bg-base-200' : 'bg-gray-300'}`}>
-                <input type="radio" name="my-accordion-2" defaultChecked />
-                <div className="collapse-title text-xl font-medium">Deposit Transactions</div>
-                <div className="collapse-content">
-                    <div className="divider my-1"></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                </div>
-            </div>
-
-            <div className={`collapse collapse-arrow my-4 ${theme === 'dark' ? 'bg-base-200' : 'bg-gray-300'}`}>
-                <input type="radio" name="my-accordion-2" />
-                <div className="collapse-title text-xl font-medium">Withdraw Transactions</div>
-                <div className="collapse-content">
-                    <div className="divider my-1"></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                </div>
-            </div>
-
-            <div className={`collapse collapse-arrow my-4 ${theme === 'dark' ? 'bg-base-200' : 'bg-gray-300'}`}>
-                <input type="radio" name="my-accordion-2" />
-                <div className="collapse-title text-xl font-medium">Thanks Transactions</div>
-                <div className="collapse-content">
-                    <div className="divider my-1"></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                    <div className='skeleton w-full h-8 my-2'></div>
-                </div>
-            </div>
-        </div>
-    )
-}
-
-export default StatementLoading
+export default StatementLoading;

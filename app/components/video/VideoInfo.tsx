@@ -1,30 +1,33 @@
 "use client";
-import React, { useState } from 'react'
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
-const VideoInfo = ({ data }) => {
+const VideoInfo = ({ data }: { data: { title: string; views: number; timeSince: string; description: string } }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const toggleDescription = () => {
-        setIsExpanded(!isExpanded);
+        setIsExpanded((v) => !v);
     };
 
     return (
         <div className="mt-4">
-            <h1 className="text-xl md:text-3xl font-bold">{data.title}</h1>
-            <div className="flex justify-between my-4">
-                <p className="text-sm text-gray-400">{data.views} Views</p>
-                <p className="text-sm text-gray-400">{data.timeSince}</p>
+            <h1 className="text-xl font-bold md:text-3xl">{data.title}</h1>
+            <div className="my-4 flex justify-between gap-2">
+                <p className="text-sm text-muted-foreground">{data.views} Views</p>
+                <p className="text-sm text-muted-foreground">{data.timeSince}</p>
             </div>
-            <div className='hidden md:block'>
-                <p className={`text-gray-400 ${isExpanded ? '' : 'line-clamp-2'}`}>
+            <div>
+                <p className={`text-sm text-muted-foreground ${isExpanded ? '' : 'line-clamp-2'}`}>
                     {data.description}
                 </p>
-                <button
+                <Button
                     onClick={toggleDescription}
-                    className="text-blue-500 mt-2"
+                    variant="link"
+                    className="mt-2 h-auto p-0"
+                    aria-expanded={isExpanded}
                 >
                     {isExpanded ? 'Show less' : 'Read more'}
-                </button>
+                </Button>
             </div>
         </div>
     )

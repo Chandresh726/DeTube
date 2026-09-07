@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useContext, useEffect, useState } from "react";
+import { ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { BalanceContext, BalanceContextProps } from "./BalanceContext";
 import { getUserBalance } from "../util/fetch/wallet";
 
@@ -13,48 +13,55 @@ export const useBalance = (): BalanceContextProps => {
 };
 
 // Hook to provide balance management logic
-const useProvideBalance = (id: number): BalanceContextProps => {
+const useProvideBalance = (id: number | undefined): BalanceContextProps => {
   const [balance, setBalance] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBalance = async (userId: number) => {
+  const fetchBalance = useCallback(async (userId: number) => {
     setLoading(true);
     try {
       const response = await getUserBalance(userId);
       if (response) {
         setBalance(response.balance);
       }
+      setError(null);
     } catch (err) {
       setError('Failed to fetch balance');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (id !== undefined) {
       fetchBalance(id);
+    } else {
+      setBalance(null);
+      setLoading(false);
     }
-  }, [id]);
+  }, [id, fetchBalance]);
 
-  const refreshBalance = async () => {
+  const refreshBalance = useCallback(async () => {
     if (id !== undefined) {
       await fetchBalance(id);
     }
-  };
+  }, [id, fetchBalance]);
 
-  return {
-    balance,
-    loading,
-    error,
-    refreshBalance,
-  };
+  return useMemo(
+    () => ({
+      balance,
+      loading,
+      error,
+      refreshBalance,
+    }),
+    [balance, loading, error, refreshBalance],
+  );
 };
 
 // Define the props for the provider component
 interface BalanceProviderProps {
-  session: any;
+  session: { user?: { id?: number } } | null;
   children: ReactNode;
 }
 

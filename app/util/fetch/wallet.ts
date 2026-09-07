@@ -1,4 +1,4 @@
-export const getUserBalance = async (id: Number) => {
+export const getUserBalance = async (id: number) => {
     const response = await fetch(`/api/wallet/balance?id=${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch balance data');
@@ -6,7 +6,7 @@ export const getUserBalance = async (id: Number) => {
     return await response.json();
 }
 
-export const getUserStatement = async (id: Number) => {
+export const getUserStatement = async (id: number) => {
     const response = await fetch(`/api/wallet/statement?id=${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch balance data');
@@ -14,7 +14,7 @@ export const getUserStatement = async (id: Number) => {
     return await response.json();
 }
 
-export const verifyUserWallet = async (publicKey: String, signature: String, message: String, userId: Number) => {
+export const verifyUserWallet = async (publicKey: string, signature: string, message: string, userId: number) => {
     const response = await fetch('/api/wallet/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -31,7 +31,7 @@ export const verifyUserWallet = async (publicKey: String, signature: String, mes
     return await response.json();
 }
 
-export const checkUserWallet = async (publicKey: String, userId: Number) => {
+export const checkUserWallet = async (publicKey: string, userId: number) => {
     const response = await fetch('/api/wallet/check', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -46,7 +46,7 @@ export const checkUserWallet = async (publicKey: String, userId: Number) => {
     return await response.json();
 }
 
-export const depositRequest = async (address: String, amount: Number, signature: String) => {
+export const depositRequest = async (address: string, amount: number, signature: string) => {
     const response = await fetch('/api/wallet/deposit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -62,7 +62,7 @@ export const depositRequest = async (address: String, amount: Number, signature:
     return await response.json();
 }
 
-export const withdrawRequest = async (walletAddress: String, amount: Number, userId: Number) => {
+export const withdrawRequest = async (walletAddress: string, amount: number, userId: number) => {
     const response = await fetch('/api/wallet/withdraw', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

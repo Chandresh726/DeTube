@@ -1,66 +1,87 @@
 "use client";
 import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
+import { toast } from 'sonner';
 import { addComment } from '../../../util/fetch/comment';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { Field, FieldLabel } from '@/components/ui/field';
+import { Textarea } from '@/components/ui/textarea';
 
-const AddComment = ({ videoId, triggerUpdate }) => {
+const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+
+const AddComment = ({ videoId, triggerUpdate }: { videoId: string; triggerUpdate: () => void }) => {
     const { data: session } = useSession();
     const [comment, setComment] = useState('');
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleCommentChange = (e) => {
+    const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setComment(e.target.value);
     };
 
-    const handleCommentSubmit = (e) => {
+    const handleCommentSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Handle comment submission logic here
-        addComment(session?.user.id, videoId, comment);
-        triggerUpdate();
-        setComment(''); // Clear the textarea after submission
+        if (!session?.user?.id || !comment.trim() || submitting) return;
+        setSubmitting(true);
+        try {
+            await addComment(session.user.id, videoId, comment.trim());
+            triggerUpdate();
+            setComment('');
+        } catch {
+            toast.error('Failed to post comment');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleCancel = () => {
         setComment('');
     };
 
-    if (!session) return (
-        <div></div>
-    )
+    if (!session) return null;
 
     return (
-        <div className="flex items-start my-4">
-            <img
-                src={session?.user.image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"}
-                alt={session?.user.name}
-                className="w-16 h-16 rounded-full object-cover mr-4"
-            />
+        <div className="my-4 flex items-start">
+            <Avatar className="mr-4 size-10">
+                <AvatarImage src={session?.user.image || DEFAULT_AVATAR} alt={session?.user.name ?? 'Your avatar'} />
+                <AvatarFallback>{(session?.user.name ?? 'U').slice(0, 1)}</AvatarFallback>
+            </Avatar>
             <div className="grow">
                 <form onSubmit={handleCommentSubmit} className="relative">
                     <div className="flex items-center">
                         <span className="font-semibold">{session?.user.name}</span>
                     </div>
-                    <textarea
-                        className="w-full p-2 mt-2 bg-transparent border-b-2 border-gray-700 focus:outline-hidden focus:border-white"
-                        placeholder="Add comment here"
-                        value={comment}
-                        onChange={handleCommentChange}
-                        rows={1}
-                    />
-                    {comment && (
-                        <div className="flex justify-end space-x-2 mt-2">
-                            <button
+                    <Field>
+                        <FieldLabel htmlFor={`comment-${videoId}`} className="sr-only">Add a comment</FieldLabel>
+                        <Textarea
+                            id={`comment-${videoId}`}
+                            placeholder="Add comment here"
+                            value={comment}
+                            onChange={handleCommentChange}
+                            rows={1}
+                            className="mt-2 border-x-0 border-t-0 shadow-none focus-visible:ring-1"
+                        />
+                    </Field>
+                    {comment.trim() && (
+                        <div className="mt-2 flex justify-end gap-2">
+                            <Button
                                 type="button"
-                                className="px-4 py-2 rounded-3xl bg-gray-500 text-white hover:bg-gray-600 focus:outline-hidden focus:ring-3 focus:ring-gray-300"
+                                variant="secondary"
+                                size="sm"
+                                className="rounded-full"
                                 onClick={handleCancel}
+                                disabled={submitting}
                             >
                                 Cancel
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="submit"
-                                className="px-4 py-2 rounded-3xl bg-blue-500 text-white hover:bg-blue-600 focus:outline-hidden focus:ring-3 focus:ring-blue-300"
+                                size="sm"
+                                className="rounded-full"
+                                disabled={submitting}
                             >
                                 Comment
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </form>

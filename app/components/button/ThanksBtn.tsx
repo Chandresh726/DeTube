@@ -1,29 +1,32 @@
 "use client";
 import { useSession } from 'next-auth/react';
-import React, { useEffect, useState } from 'react';
+import React, { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { CiHeart } from "react-icons/ci";
-import { useTheme } from '../wrapper/ThemeContext';
 import { LAMPORTS_PER_SOL } from '@solana/web3.js';
+import { toast } from 'sonner';
 import { sendThanks } from '../../util/fetch/channel';
 import { useBalance } from '../../hooks/useBalance';
 import { Player } from '@lottiefiles/react-lottie-player';
 import successAnimation from '../../../public/successAnimation.json';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
+import { formatDTSolPrecise } from '@/lib/utils';
 
-const ThanksButton = ({ channelId, channelName }) => {
+const ThanksButton = ({ channelId, channelName }: { channelId: number; channelName: string }) => {
     const { data: session } = useSession();
     const router = useRouter();
-    const { theme } = useTheme();
     const { balance, refreshBalance } = useBalance();
-    const [amount, setAmount] = useState<string>("0");
+    const [amountSol, setAmountSol] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(false);
     const [success, setSuccess] = useState<boolean>(false);
-
-    const handleRangeInputChange = (value: number) => {
-        // Convert from lamports to SOL
-        const solValue = (value / LAMPORTS_PER_SOL).toFixed(1);
-        setAmount(solValue);
-    };
+    const [open, setOpen] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const sliderId = useId();
+    const safeBalance = balance ?? 0;
 
     const handleThanks = async () => {
         if (!session) {
@@ -33,19 +36,23 @@ const ThanksButton = ({ channelId, channelName }) => {
 
         setLoading(true);
         setSuccess(false);
+        setError(null);
         try {
-            // Notify backend about the thank you transaction
-            const res = await sendThanks(Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), session.user.id, channelId);
+            const lamports = Math.round(amountSol * LAMPORTS_PER_SOL);
+            const res = await sendThanks(lamports, session.user.id, channelId);
 
             if (res.success) {
                 setSuccess(true);
                 refreshBalance();
             } else {
-                alert(`Thanks failed: ${res.message}`);
+                const msg = res.message ?? 'Thanks transaction failed';
+                setError(msg);
+                toast.error(msg);
             }
-        } catch (error) {
-            console.error('Thank you transaction failed', error);
-            alert('An error occurred during the transaction.');
+        } catch (err) {
+            const msg = 'An error occurred during the transaction.';
+            setError(msg);
+            toast.error(msg);
         } finally {
             setLoading(false);
         }
@@ -56,77 +63,79 @@ const ThanksButton = ({ channelId, channelName }) => {
             router.push('/logIn');
             return;
         }
-        const modal = document.getElementById('my_modal_3') as HTMLDialogElement;
-        modal.showModal();
+        setError(null);
+        setSuccess(false);
+        setOpen(true);
     };
 
     return (
-        <div className={`flex flex-col mt-4 items-center w-full rounded-3xl bg-blue-400 ${theme === 'dark' ? '' : 'text-black'}`}>
-            <button
-                onClick={openModal}
-                className={`py-2 rounded-lg font-semibold transition-colors duration-300 hover:opacity-75`}
-            >
-                <div className='flex items-center'>
-                    Thanks
-                    <CiHeart className='mx-1 w-6 h-6' />
-                </div>
-            </button>
-            <dialog id="my_modal_3" className="modal">
-                <div className="modal-box">
-                    <form method="dialog">
-                        <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">✕</button>
-                    </form>
-                    <div>
-                        <div className='text-lg font-bold'>Thanks : {channelName}</div>
-                        <div className="divider my-1"></div>
-                        {success ? (
-                            <div className='my-4 text-center'>
-                                <p className="text-2xl text-center text-green-500 font-medium my-4">Sent {amount} DTSol successfully!</p>
-                                <Player
-                                    autoplay
-                                    loop={true}
-                                    src={successAnimation}
-                                    style={{ height: '200px', width: '200px' }}
-                                />
-                                <button className='btn btn-info' onClick={() => { setSuccess(false) }}>Send Again</button>
-                            </div>
-                        ) : (
-                            <div className='flex flex-col'>
-                                <p className="text-lg text-center font-medium my-4">Available Balance: {(balance / LAMPORTS_PER_SOL).toFixed(2)} DTSol</p>
-                                <input
-                                    type="range"
-                                    min={0}
-                                    max={balance}
-                                    step={LAMPORTS_PER_SOL / 5} // Step by 0.2 SOL in lamports
-                                    value={parseFloat(amount) * LAMPORTS_PER_SOL || 0}
-                                    onChange={(e) => handleRangeInputChange(parseFloat(e.target.value))}
-                                    className="range range-lg range-success my-4"
-                                />
-                                <button
-                                    className='btn btn-outline btn-error my-4'
-                                    onClick={handleThanks}
-                                    disabled={loading || parseFloat(amount) <= 0}
-                                >
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor">
-                                        <path
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                            strokeWidth="2"
-                                            d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                                    </svg>
-                                    {loading ? 'Processing...' : `Send ${amount} DTSol`}
-                                </button>
-                            </div>
-                        )}
+        <Dialog open={open} onOpenChange={setOpen}>
+            <Button onClick={openModal} className="mt-4 w-full rounded-full" aria-label={`Send thanks to ${channelName}`}>
+                Thanks
+                <CiHeart aria-hidden data-icon="inline-end" />
+            </Button>
+            <DialogTrigger className="hidden" aria-hidden tabIndex={-1} asChild>
+                <span />
+            </DialogTrigger>
+            <DialogContent aria-describedby={undefined}>
+                <DialogHeader>
+                    <DialogTitle>Thanks: {channelName}</DialogTitle>
+                    <DialogDescription>Support this channel with DTSol</DialogDescription>
+                </DialogHeader>
+                <Separator className="my-1" />
+                {success ? (
+                    <div className="my-4 text-center">
+                        <p className="my-4 text-center text-2xl font-medium text-green-600">Sent {amountSol.toFixed(1)} DTSol successfully!</p>
+                        <Player
+                            autoplay
+                            loop={false}
+                            keepLastFrame
+                            src={successAnimation}
+                            style={{ height: '200px', width: '200px', margin: '0 auto' }}
+                        />
+                        <Button variant="secondary" onClick={() => { setSuccess(false) }}>Send Again</Button>
                     </div>
-                </div>
-            </dialog>
-        </div>
+                ) : (
+                    <div className="flex flex-col gap-4">
+                        <p className="text-center text-lg font-medium">Available Balance: {formatDTSolPrecise(safeBalance)} DTSol</p>
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor={sliderId} className="text-sm text-muted-foreground">
+                                Amount: {amountSol.toFixed(1)} DTSol
+                            </label>
+                            <Slider
+                                id={sliderId}
+                                min={0}
+                                max={safeBalance / LAMPORTS_PER_SOL}
+                                step={0.2}
+                                value={[amountSol]}
+                                onValueChange={([v]) => setAmountSol(v ?? 0)}
+                                aria-label="Thanks amount in DTSol"
+                            />
+                        </div>
+                        {error ? (
+                            <p role="alert" className="text-center text-sm text-destructive">{error}</p>
+                        ) : null}
+                        <Button
+                            variant="destructive"
+                            onClick={handleThanks}
+                            disabled={loading || amountSol <= 0 || safeBalance <= 0}
+                        >
+                            {loading ? (
+                                <>
+                                    <Spinner data-icon="inline-start" />
+                                    Processing…
+                                </>
+                            ) : (
+                                `Send ${amountSol.toFixed(1)} DTSol`
+                            )}
+                        </Button>
+                    </div>
+                )}
+                <DialogClose asChild>
+                    <Button variant="ghost" size="icon" className="absolute right-2 top-2" aria-label="Close thanks dialog">✕</Button>
+                </DialogClose>
+            </DialogContent>
+        </Dialog>
     );
 };
 

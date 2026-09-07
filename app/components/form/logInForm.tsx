@@ -2,11 +2,15 @@
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
-import { useTheme } from '../wrapper/ThemeContext';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 
 const LogInForm = () => {
-  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loadingFlag, setLoadingFlag] = useState(false);
@@ -35,76 +39,82 @@ const LogInForm = () => {
   };
 
   return (
-    <div className={`p-6 max-w-md mx-auto mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-black'}`}>
-      <h1 className="text-2xl font-bold text-center mb-6">Login</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <div className="my-1 text-lg">Email</div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => {setEmail(e.target.value);setErrorMessage("");}}
-            required
-            className="input input-bordered block w-full"
-          />
-        </div>
-        <div>
-          <div className="my-1 text-lg">Password</div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => {setPassword(e.target.value);setErrorMessage("");}}
-            required
-            className="input input-bordered block w-full"
-          />
-        </div>
-        <button
-          type="submit"
-          className={`w-full py-2 px-4 font-semibold rounded-lg shadow-md ${email && password ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
-          disabled={!email || !password}
-        >
-          {loadingFlag ? (
-            <div className="flex justify-center items-center space-x-2">
-              <span>Processing</span>
-              <div className="loading loading-spinner"></div>
-            </div>
-          ) : (
-            <div>Login</div>
-          )}
-        </button>
-        {errorMessage && (
-          <div className="text-red-500 text-center">{errorMessage}</div>
-        )}
-      </form>
-      <div className="divider"></div>
-      <div className="mt-6 flex flex-col items-center">
-        <button
-          onClick={() => handleProviderLogin('github')}
-          className="w-full py-2 px-4 font-semibold rounded-lg shadow-md bg-gray-800 hover:bg-gray-900 text-white flex items-center justify-center space-x-2 mb-4"
-        >
-          <FaGithub size={20} />
-          <span>Login with GitHub</span>
-        </button>
-        <button
-          onClick={() => handleProviderLogin('google')}
-          className="w-full py-2 px-4 font-semibold rounded-lg shadow-md bg-red-600 hover:bg-red-700 text-white flex items-center justify-center space-x-2"
-        >
-          <FaGoogle size={20} />
-          <span>Login with Google</span>
-        </button>
-      </div>
-      <div className="mt-6 text-center">
-        <p className="">
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/signUp"
-            className="text-blue-600 hover:underline"
+    <Card className="mx-auto mt-10 max-w-md">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Login</CardTitle>
+        <CardDescription>Welcome back to DeTube</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="login-email">Email</FieldLabel>
+              <Input
+                id="login-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrorMessage(""); }}
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="login-password">Password</FieldLabel>
+              <Input
+                id="login-password"
+                type="password"
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => { setPassword(e.target.value); setErrorMessage(""); }}
+                required
+              />
+            </Field>
+            <Button type="submit" className="w-full" disabled={!email || !password || loadingFlag}>
+              {loadingFlag ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Processing
+                </>
+              ) : (
+                "Login"
+              )}
+            </Button>
+            {errorMessage && (
+              <p role="alert" aria-live="assertive" className="text-center text-sm text-destructive">{errorMessage}</p>
+            )}
+          </FieldGroup>
+        </form>
+        <Separator className="my-6" />
+        <div className="flex flex-col items-center gap-3">
+          <Button
+            onClick={() => handleProviderLogin('github')}
+            variant="secondary"
+            className="w-full"
+            disabled={loadingFlag}
           >
-            Register here
-          </Link>
-        </p>
-      </div>
-    </div>
+            <FaGithub data-icon="inline-start" />
+            Login with GitHub
+          </Button>
+          <Button
+            onClick={() => handleProviderLogin('google')}
+            variant="outline"
+            className="w-full"
+            disabled={loadingFlag}
+          >
+            <FaGoogle data-icon="inline-start" />
+            Login with Google
+          </Button>
+        </div>
+        <div className="mt-6 text-center text-sm">
+          <p className="text-muted-foreground">
+            Don&apos;t have an account?{' '}
+            <Link href="/signUp" className="text-primary underline-offset-4 hover:underline">
+              Register here
+            </Link>
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

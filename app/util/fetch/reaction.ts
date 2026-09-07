@@ -1,4 +1,4 @@
-export const reactToVideo = async (userId: Number, videoId: String, status: String) => {
+export const reactToVideo = async (userId: number, videoId: string, status: string) => {
     const response = await fetch('/api/reaction/react', {
         method: 'POST',
         headers: {

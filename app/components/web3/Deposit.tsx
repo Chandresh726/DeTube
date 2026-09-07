@@ -1,29 +1,38 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useId } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import * as web3 from "@solana/web3.js";
 import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { toast } from 'sonner';
 import ConnectWallet from './ConnectWallet';
-import { useTheme } from '../wrapper/ThemeContext';
 import { depositRequest } from '../../util/fetch/wallet';
 import { useBalance } from '../../hooks/useBalance';
 import { Player } from '@lottiefiles/react-lottie-player';
 import successAnimation from '../../../public/successAnimation.json';
 import failureAnimation from '../../../public/failureAnimation.json';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
+import { Separator } from '@/components/ui/separator';
+import { Spinner } from '@/components/ui/spinner';
 
-const Deposit = ({ session }) => {
-    const { theme } = useTheme();
+const Deposit = ({ session }: { session: { user: { id: number } } }) => {
     const { publicKey, connected, sendTransaction } = useWallet();
     const { connection } = useConnection();
-    const [walletVerified, setWalletVerified] = useState<boolean>(null);
+    const [walletVerified, setWalletVerified] = useState<boolean>(false);
     const [walletBalance, setWalletBalance] = useState<number>(0);
     const { refreshBalance } = useBalance();
-    const [amount, setAmount] = useState<string>("0.0");
+    const [amountSol, setAmountSol] = useState<number>(0);
+    const [textValue, setTextValue] = useState<string>("0.0");
     const [loading, setLoading] = useState<boolean>(false);
     const [showAirdrop, setShowAirdrop] = useState<boolean>(false);
-    const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [modalOpen, setModalOpen] = useState<boolean>(false);
     const [modalMessage, setModalMessage] = useState<string>('');
     const [modalType, setModalType] = useState<'success' | 'failure'>('success');
+    const amountId = useId();
 
     useEffect(() => {
         if (connected && publicKey) {
@@ -33,14 +42,19 @@ const Deposit = ({ session }) => {
 
     const fetchBalance = async (address: string) => {
         try {
-            const publicKey = new web3.PublicKey(address);
-            const balanceLamports = await connection.getBalance(publicKey);
+            const key = new web3.PublicKey(address);
+            const balanceLamports = await connection.getBalance(key);
             setWalletBalance(balanceLamports);
-            if (balanceLamports < LAMPORTS_PER_SOL) setShowAirdrop(true);
-            else setShowAirdrop(false);
+            setShowAirdrop(balanceLamports < LAMPORTS_PER_SOL);
         } catch (error) {
-            console.error('Failed to fetch balance', error);
+            toast.error('Failed to fetch wallet balance');
         }
+    };
+
+    const syncAmount = (sol: number) => {
+        const clamped = Math.max(0, Math.min(sol, walletBalance / LAMPORTS_PER_SOL));
+        setAmountSol(clamped);
+        setTextValue(clamped.toFixed(1));
     };
 
     const handleDeposit = async () => {
@@ -49,11 +63,12 @@ const Deposit = ({ session }) => {
         setLoading(true);
         try {
             const transaction = new web3.Transaction();
-            const recipientPubKey = new web3.PublicKey(process.env.NEXT_PUBLIC_WALLET_PUBLIC_KEY);
+            const recipientPubKey = new web3.PublicKey(process.env.NEXT_PUBLIC_WALLET_PUBLIC_KEY as string);
+            const lamports = Math.round(amountSol * LAMPORTS_PER_SOL);
             const sendSolInstruction = web3.SystemProgram.transfer({
                 fromPubkey: publicKey,
                 toPubkey: recipientPubKey,
-                lamports: Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), // Convert SOL to lamports
+                lamports,
             });
             transaction.add(sendSolInstruction);
 
@@ -65,127 +80,118 @@ const Deposit = ({ session }) => {
                 signature: signature,
             });
 
-            // Notify backend about the deposit
-            const res = await depositRequest(publicKey.toString(), Math.round(parseFloat(amount) * LAMPORTS_PER_SOL), signature)
+            const res = await depositRequest(publicKey.toString(), lamports, signature)
             if (res.success) {
                 refreshBalance();
                 setModalMessage('Your deposit was processed successfully.');
                 setModalType('success');
             } else {
-                setModalMessage(`Deposit failed: ${res.message}`);
+                setModalMessage(`Deposit failed: ${res.message ?? 'unknown error'}`);
                 setModalType('failure');
             }
         } catch (error) {
-            console.error('Deposit transaction failed', error);
             setModalMessage('An error occurred during the deposit process.');
             setModalType('failure');
         } finally {
-            fetchBalance(publicKey.toString());
-            setModalVisible(true);
+            if (publicKey) fetchBalance(publicKey.toString());
+            setModalOpen(true);
             setLoading(false);
-            setAmount("0.0");
+            syncAmount(0);
         }
     };
 
-    const handleTextInputChange = (value: string) => {
-        // Allow empty string (for backspace) and partial valid inputs like "3."
-        if (value === "" || /^\d*\.?\d*$/.test(value)) {
-            const numericValue = parseFloat(value);
-
-            // Check if the value exceeds the balance
-            if (!isNaN(numericValue) && numericValue <= walletBalance / LAMPORTS_PER_SOL) {
-                setAmount(value);
-            } else if (isNaN(numericValue)) {
-                setAmount(value);
-            }
-        }
-    };
-
-    const handleBlur = () => {
-        // Ensure the value is a valid multiple of 0.1 and within the allowable range
-        const numericValue = parseFloat(amount);
-
-        if (isNaN(numericValue) || numericValue < 0) {
-            setAmount("0.0"); // Reset to 0.0 if the value is invalid or empty
-        } else {
-            // Round to nearest 0.1 multiple and ensure it doesn't exceed balance
-            const roundedValue = Math.floor(numericValue * 10) / 10;
-            const finalValue = Math.min(roundedValue, walletBalance / LAMPORTS_PER_SOL);
-            setAmount(finalValue.toFixed(1));
-        }
-    };
-
-    const handleRangeInputChange = (value: number) => {
-        // Convert from lamports to SOL
-        const solValue = (value / LAMPORTS_PER_SOL).toFixed(1);
-        setAmount(solValue);
-    };
+    const maxSol = walletBalance / LAMPORTS_PER_SOL;
 
     return (
-        <div className={`p-6 max-w-md mx-auto mt-10 ${theme === 'dark' ? 'text-gray-400' : 'text-black'}`}>
-            <ConnectWallet setWalletVerified={setWalletVerified} userId={session?.user.id} />
-            <div className="divider my-1"></div>
-            {connected && walletVerified ? (
-                <div className='flex flex-col'>
-                    <p className="text-lg text-center font-medium my-4">Wallet Balance: ${(walletBalance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
-                    {showAirdrop &&
-                        <div className="text-md text-red-400 text-center my-1">You wallet balance is low. <a className='underline' target="_blank" href='https://faucet.solana.com/'>Get AirDrop</a></div>
-                    }
-                    <input
-                        type="text"
-                        className='input input-bordered w-full my-2'
-                        value={amount}
-                        onChange={(e) => handleTextInputChange(e.target.value)}
-                        onBlur={handleBlur}
-                        placeholder="Enter amount to deposit"
-                    />
-                    <input
-                        type="range"
-                        min={0}
-                        max={walletBalance}
-                        step={LAMPORTS_PER_SOL / 10} // Step by 0.1 SOL in lamports
-                        value={parseFloat(amount) * LAMPORTS_PER_SOL || 0}
-                        onChange={(e) => handleRangeInputChange(parseFloat(e.target.value))}
-                        className="range my-2"
-                    />
-                    <button
-                        className='btn btn-active btn-primary my-2'
-                        onClick={handleDeposit}
-                        disabled={loading || parseFloat(amount) <= 0}
-                    >
-                        {loading ? 'Processing...' : `Deposit ${amount} SOL`}
-                    </button>
-                </div>
-            ) : (
-                <p className="text-md">Please connect and verify your wallet to deposit.</p>
-            )}
+        <Card className="mx-auto mt-10 max-w-md">
+            <CardHeader>
+                <CardTitle>Deposit SOL</CardTitle>
+                <CardDescription>Top up your DeTube balance</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ConnectWallet setWalletVerified={setWalletVerified} userId={session?.user.id} />
+                <Separator className="my-2" />
+                {connected && walletVerified ? (
+                    <FieldGroup>
+                        <p className="text-center text-lg font-medium">Wallet Balance: {(walletBalance / LAMPORTS_PER_SOL).toFixed(2)} SOL</p>
+                        {showAirdrop &&
+                            <p className="text-center text-sm text-destructive">Your wallet balance is low. <a className="underline" target="_blank" rel="noreferrer" href="https://faucet.solana.com/">Get AirDrop</a></p>
+                        }
+                        <Field>
+                            <FieldLabel htmlFor={amountId}>Amount (SOL)</FieldLabel>
+                            <div className="flex gap-2">
+                                <Input
+                                    id={amountId}
+                                    type="text"
+                                    inputMode="decimal"
+                                    value={textValue}
+                                    onChange={(e) => {
+                                        const v = e.target.value;
+                                        if (v === "" || /^\d*\.?\d*$/.test(v)) {
+                                            setTextValue(v);
+                                            const n = parseFloat(v);
+                                            if (!Number.isNaN(n)) setAmountSol(Math.min(n, maxSol));
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        const n = parseFloat(textValue);
+                                        if (Number.isNaN(n) || n < 0) syncAmount(0);
+                                        else syncAmount(Math.floor(n * 10) / 10);
+                                    }}
+                                    placeholder="Enter amount to deposit"
+                                />
+                                <Button type="button" variant="secondary" onClick={() => syncAmount(maxSol)}>Max</Button>
+                            </div>
+                            <p className="text-xs text-muted-foreground">0.1 SOL increments, up to your wallet balance.</p>
+                        </Field>
+                        <Slider
+                            min={0}
+                            max={maxSol}
+                            step={0.1}
+                            value={[amountSol]}
+                            onValueChange={([v]) => syncAmount(v ?? 0)}
+                            aria-label="Deposit amount in SOL"
+                        />
+                        <Button
+                            onClick={handleDeposit}
+                            disabled={loading || amountSol <= 0}
+                        >
+                            {loading ? (
+                                <>
+                                    <Spinner data-icon="inline-start" />
+                                    Processing…
+                                </>
+                            ) : (
+                                `Deposit ${amountSol.toFixed(1)} SOL`
+                            )}
+                        </Button>
+                    </FieldGroup>
+                ) : (
+                    <p className="text-sm text-muted-foreground">Please connect and verify your wallet to deposit.</p>
+                )}
 
-            {modalVisible && (
-                <dialog open className={`modal`}>
-                    <div className="modal-box">
-                        <form method="dialog">
-                            <button
-                                className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
-                                onClick={() => setModalVisible(false)}
-                            >
-                                ✕
-                            </button>
-                        </form>
-                        <h3 className={`font-bold text-lg ${modalType === 'success' ? 'text-green-800' : 'text-red-800'}`}>
-                            {modalType === 'success' ? 'Success!' : 'Failure!'}
-                        </h3>
+                <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle className={modalType === 'success' ? 'text-green-600' : 'text-destructive'}>
+                                {modalType === 'success' ? 'Success!' : 'Failure!'}
+                            </DialogTitle>
+                            <DialogDescription>{modalMessage}</DialogDescription>
+                        </DialogHeader>
                         <Player
                             autoplay
-                            loop={true}
+                            loop={false}
+                            keepLastFrame
                             src={modalType === 'success' ? successAnimation : failureAnimation}
-                            style={{ height: '200px', width: '200px' }}
+                            style={{ height: '200px', width: '200px', margin: '0 auto' }}
                         />
-                        <p className="py-4">{modalMessage}</p>
-                    </div>
-                </dialog>
-            )}
-
-        </div>
+                        <DialogClose asChild>
+                            <Button variant="secondary">Close</Button>
+                        </DialogClose>
+                    </DialogContent>
+                </Dialog>
+            </CardContent>
+        </Card>
     );
 };
 

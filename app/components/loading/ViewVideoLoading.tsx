@@ -1,39 +1,38 @@
-import React from 'react'
+import React from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const ViewVideoLoading = () => {
-    return (
-        <div className="container mx-auto px-1 lg:px-16">
-            <div className="flex flex-col lg:flex-row">
-                <div className="grow lg:w-3/4">
-                    <div className="relative aspect-video rounded-md overflow-hidden">
-                        <div className="skeleton h-full w-full"></div>
-                    </div>
-                    <div className="mt-4">
-                        <div className="skeleton h-8 w-full"></div>
-                        <div className="flex justify-between my-4">
-                            <div className="skeleton h-6 w-32"></div>
-                            <div className="skeleton h-6 w-32"></div>
-                        </div>
-                        <div className='hidden md:block'>
-                            <div className="skeleton h-12 w-full"></div>
-                        </div>
-                    </div>
-                </div>
-                <div className="lg:w-1/4 lg:pl-8 mt-4 lg:mt-0">
-                    <div className="flex items-center">
-                        <div className="skeleton h-24 w-24 my-2 shrink-0 rounded-full"></div>
-                        <div className="ml-4">
-                            <div className="skeleton h-6 w-24 my-2"></div>
-                            <div className="skeleton h-6 w-24 my-2"></div>
-                        </div>
-                    </div>
-                    <div className="skeleton h-8 w-full rounded-3xl my-4"></div>
-                    <div className="skeleton h-8 w-full rounded-3xl my-4"></div>
-                    <div className="skeleton h-16 w-full rounded-3xl my-4"></div>
-                </div>
+  return (
+    <div className="container mx-auto px-1 lg:px-16" aria-busy="true" aria-label="Loading video">
+      <div className="flex flex-col gap-4 lg:flex-row">
+        <div className="grow lg:w-3/4">
+          <div className="relative aspect-video overflow-hidden rounded-xl">
+            <Skeleton className="h-full w-full rounded-none" />
+          </div>
+          <div className="mt-4 flex flex-col gap-3">
+            <Skeleton className="h-7 w-full" />
+            <div className="flex justify-between gap-2">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-32" />
             </div>
+            <Skeleton className="h-12 w-full" />
+          </div>
         </div>
-    )
-}
+        <div className="mt-4 flex flex-col gap-3 lg:mt-0 lg:w-1/4 lg:pl-8">
+          <div className="flex items-center gap-4">
+            <Skeleton className="my-2 size-24 shrink-0 rounded-full" />
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-24" />
+            </div>
+          </div>
+          <Skeleton className="h-9 w-full rounded-xl" />
+          <Skeleton className="h-9 w-full rounded-xl" />
+          <Skeleton className="h-16 w-full rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+};
 
-export default ViewVideoLoading
+export default ViewVideoLoading;

@@ -8,8 +8,10 @@ import Provider from "./components/wrapper/Provider";
 import DynamicNavBarWrapper from "./components/wrapper/DynamicNavBarWrapper";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Toaster } from "sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -33,8 +35,9 @@ export default async function RootLayout({
 }>) {
   const session = await getServerSession(authOptions);
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground antialiased`}>
+        <TooltipProvider>
         <Provider>
           <BalanceProvider session={session}>
             <DynamicNavBarWrapper session={session}>
@@ -44,6 +47,8 @@ export default async function RootLayout({
             </DynamicNavBarWrapper>
           </BalanceProvider>
         </Provider>
+        </TooltipProvider>
+        <Toaster richColors closeButton position="top-center" />
       </body>
     </html>
   );

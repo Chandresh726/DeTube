@@ -1,4 +1,4 @@
-export const createVideo = async (channelId: Number, videoId: String, title: String, description: String, thumbnail: any, video: any) => {
+export const createVideo = async (channelId: number, videoId: string, title: string, description: string, thumbnail: any, video: any) => {
     const response = await fetch('/api/video/add', {
         method: 'POST',
         headers: {

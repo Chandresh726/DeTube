@@ -1,33 +1,52 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import { Heart } from 'lucide-react';
 import VideoCard from './video/VideoCard';
 import { getSubscriptionsDataWithVideos } from '../util/fetch/subscription';
 import VideosLoading from './loading/VideosLoading';
+import { EmptyState } from '@/components/shared/empty-state';
 
-const SubscriptionPage = ({ id }) => {
-    const [videos, setVideos] = useState(null);
+const SubscriptionPage = ({ id }: { id: number }) => {
+    const [videos, setVideos] = useState<Array<{ id: string; [k: string]: unknown }> | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
+        const controller = new AbortController();
         const fetchVideos = async () => {
             try {
                 const response = await getSubscriptionsDataWithVideos(id);
+                if (cancelled) return;
                 const { videos } = response;
                 setVideos(videos);
             } catch (error) {
-                console.error('Error fetching videos:', error);
+                if (!cancelled) setVideos([]);
             }
         };
         fetchVideos();
-    }, []);
+        return () => {
+            cancelled = true;
+            controller.abort();
+        };
+    }, [id]);
 
     if (!videos) return <VideosLoading />
 
-    if (videos.length === 0) return <div className='m-4'>No Videos Found</div>
+    if (videos.length === 0) {
+        return (
+            <EmptyState
+                icon={Heart}
+                title="No videos found"
+                description="Videos from your subscriptions will show up here."
+                actionLabel="Browse home"
+                actionHref="/"
+            />
+        );
+    }
 
     return (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {videos.map((video) => (
-                <VideoCard key={video.id} video={video} showChannel={true} />
+                <VideoCard key={video.id} video={video as never} showChannel={true} />
             ))}
         </div>
     );

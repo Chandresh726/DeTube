@@ -1,7 +1,10 @@
+ "use client";
 import React from 'react'
+import dynamic from 'next/dynamic';
 import SessionWrapper from './SessionWrapper';
-import AppWalletProvider from './AppWalletProvider';
 import { ThemeProvider } from './ThemeContext';
+
+const AppWalletProvider = dynamic(() => import('./AppWalletProvider'), { ssr: false });
 
 const Provider = ({
     children,

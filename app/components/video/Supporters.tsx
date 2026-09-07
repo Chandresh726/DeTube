@@ -1,34 +1,44 @@
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
-import React from 'react'
-import { useTheme } from '../wrapper/ThemeContext';
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatDTSol } from '@/lib/utils';
 
-const Supporters = ({ supporters }) => {
-    const { theme } = useTheme();
+const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+
+const Supporters = ({ supporters }: { supporters: Array<{ id: number | string; name: string; image?: string | null; amount: number | string }> }) => {
     return (
-        <div className={`w-full border-4 rounded-md ${theme === 'dark' ? 'border-gray-600' : 'border-gray-300'}`}>
-            <div className={`${theme === 'dark' ? 'bg-gray-600' : 'bg-gray-300'} px-2`}>Top Supporters</div>
-            <table className="table">
-                <tbody>
+        <Card className="w-full py-0">
+            <CardHeader className="bg-muted px-3 py-2">
+              <CardTitle className="text-sm font-semibold">Top Supporters</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+            <Table>
+                <TableBody>
                     {supporters.map((user, index) => (
-                        <tr key={user.id}>
-                            <td className='font-bold px-1'>{index + 1}</td>
-                            <td>
-                                <div className='flex items-center'>
-                                    <img src={user.image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"} alt={user.name} className="w-6 h-6 mr-2 rounded-full" />
-                                    {(user.name).split(" ")[0]}
+                        <TableRow key={user.id}>
+                            <TableCell className="px-2 font-bold">{index + 1}</TableCell>
+                            <TableCell>
+                                <div className="flex items-center">
+                                    <Avatar className="mr-2 size-6">
+                                      <AvatarImage src={user.image || DEFAULT_AVATAR} alt={user.name} />
+                                      <AvatarFallback>{user.name.slice(0, 1)}</AvatarFallback>
+                                    </Avatar>
+                                    {user.name.split(" ")[0]}
                                 </div>
-                            </td>
-                            <td className='text-sm font-bold px-1'>{(Number(user.amount) / LAMPORTS_PER_SOL).toFixed(1)} DTSol</td>
-                        </tr>
+                            </TableCell>
+                            <TableCell className="px-2 text-sm font-bold">{formatDTSol(Number(user.amount))} DTSol</TableCell>
+                        </TableRow>
                     ))}
-                </tbody>
-            </table>
+                </TableBody>
+            </Table>
             {supporters.length < 5 &&
-                <div className='text-sm font-thin text-center my-2'>
+                <div className="my-2 text-center text-sm font-light text-muted-foreground">
                     Support the channel to appear here
                 </div>
             }
-        </div>
+            </CardContent>
+        </Card>
     )
 }
 

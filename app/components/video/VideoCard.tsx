@@ -1,47 +1,59 @@
 "use client";
-import React from 'react';
-import { useRouter } from 'next/navigation';
-import { useTheme } from '../wrapper/ThemeContext';
+import React, { memo } from 'react';
+import Link from 'next/link';
+import { Card, CardContent } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const VideoCard = ({ video , showChannel }) => {
-    const { theme } = useTheme();
-    const router = useRouter();
-    const handleClick = () => {
-        router.push(`/video/${video.id}`); // Use router.push for client-side navigation
-    };
-    return (
-        <div
-            className={`card card-compact bg-base-100 shadow-xl w-full transform transition-transform duration-300 ease-in-out hover:scale-105 cursor-pointer ${theme==='dark'?'':'text-black'}`}
-            onClick={handleClick}
-        >
-            <figure className="relative aspect-video">
-                <img
-                    src={video.thumbnailUrl}
-                    alt={video.title}
-                    className="object-cover w-full"
-                />
-            </figure>
-            <div className="card-body p-4">
-                <h2 className={`card-title text-lg font-semibold overflow-hidden`}>
-                    <span className="line-clamp-1" title={video.title}>{video.title}</span>
-                </h2>
-                <div className='flex justify-between items-center'>
-                    {showChannel &&
-                        <div className='mr-2 flex items-center'>
-                            <img
-                                src={video.channel.image}
-                                alt={`${video.channel.name} logo`}
-                                className="rounded-full w-8 h-8 mr-2"
-                            />
-                            <p className="text-md font-bold text-gray-500">{video.channel.name}</p>
-                        </div>
-                    }
-                    <p className="text-sm text-gray-500">{video.timeSince}</p>
-                    <span className="text-sm text-gray-500">{video.views} Views</span>
-                </div>
-            </div>
+type VideoCardProps = {
+  video: {
+    id: string;
+    title: string;
+    thumbnailUrl: string;
+    timeSince?: string;
+    views?: number;
+    channel?: { image?: string | null; name?: string };
+  };
+  showChannel?: boolean;
+};
+
+const VideoCard = memo(function VideoCard({ video, showChannel }: VideoCardProps) {
+  return (
+    <Link
+      href={`/video/${video.id}`}
+      className="group block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      aria-label={`Watch ${video.title}`}
+    >
+      <Card className="w-full overflow-hidden py-0 transition-shadow duration-200 group-hover:shadow-lg">
+        <div className="relative aspect-video overflow-hidden bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={video.thumbnailUrl}
+            alt={video.title}
+            loading="lazy"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          />
         </div>
-    );
-}
+        <CardContent className="flex flex-col gap-2 p-4">
+          <h2 className="truncate text-base font-semibold" title={video.title}>
+            {video.title}
+          </h2>
+          <div className="flex items-center justify-between gap-2">
+            {showChannel && video.channel ? (
+              <div className="mr-2 flex min-w-0 items-center">
+                <Avatar className="mr-2 size-8">
+                  <AvatarImage src={video.channel.image ?? undefined} alt={`${video.channel.name ?? 'Channel'} logo`} />
+                  <AvatarFallback>{(video.channel.name ?? 'C').slice(0, 1)}</AvatarFallback>
+                </Avatar>
+                <p className="truncate text-sm font-semibold text-muted-foreground">{video.channel.name}</p>
+              </div>
+            ) : null}
+            <p className="text-xs text-muted-foreground">{video.timeSince}</p>
+            <span className="text-xs text-muted-foreground">{video.views} Views</span>
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+});
 
 export default VideoCard;

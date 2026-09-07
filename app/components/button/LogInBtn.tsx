@@ -1,10 +1,11 @@
 "use client";
 import React from 'react'
 import { signIn  } from "next-auth/react"
+import { Button } from '@/components/ui/button';
 
 const LogIn = () => {
   return (
-    <button onClick={() => signIn()} className="btn btn-active">Log In</button>
+    <Button onClick={() => signIn()} variant="default">Log In</Button>
   )
 }
 

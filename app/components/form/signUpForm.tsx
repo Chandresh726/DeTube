@@ -1,37 +1,33 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { signIn } from "next-auth/react";
-import { useTheme } from '../wrapper/ThemeContext';
 import Link from 'next/link';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Spinner } from '@/components/ui/spinner';
 
 const SignupForm = () => {
-  const { theme } = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [isFormValid, setIsFormValid] = useState(false);
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  // Form validation
-  useEffect(() => {
-    if (password !== '' && confirmPassword !== '' && password !== confirmPassword) {
-      setErrorMessage('Passwords do not match');
-      setIsFormValid(false);
-    } else {
-      setErrorMessage('');
-      setIsFormValid(
-        email !== '' &&
-        password !== '' &&
-        confirmPassword !== '' &&
-        name !== ''
-      );
-    }
-  }, [email, password, confirmPassword, name]);
+  const passwordsMismatch =
+    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+  const isFormValid =
+    email !== '' && password !== '' && confirmPassword !== '' && name !== '' && !passwordsMismatch;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) {
+      setErrorMessage(passwordsMismatch ? 'Passwords do not match' : 'Please fill all fields');
+      return;
+    }
     setLoadingFlag(true);
     try {
       const response = await fetch('/api/auth/register', {
@@ -43,90 +39,103 @@ const SignupForm = () => {
       });
 
       if (response.ok) {
-        signIn(); // Redirects to sign-in
+        signIn();
       } else {
         const error = await response.json();
-        setErrorMessage(error.message);
+        const msg = error.message ?? 'Registration failed';
+        setErrorMessage(msg);
+        toast.error(msg);
       }
     } catch (error) {
-      console.error('Registration error:', error);
       setErrorMessage('An error occurred. Please try again.');
+      toast.error('Registration failed. Please try again.');
     } finally {
       setLoadingFlag(false);
     }
   };
 
   return (
-    <div className={`p-6 max-w-md mx-auto mt-2 ${theme === 'dark' ? 'text-gray-400' : 'text-black'}`}>
-      <h1 className="text-2xl font-bold text-center mb-3">Create Account</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <div className="my-2 text-lg">Name</div>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            className="input input-bordered block w-full"
-          />
+    <Card className="mx-auto mt-2 max-w-md">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl">Create Account</CardTitle>
+        <CardDescription>Join DeTube today</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit}>
+          <FieldGroup>
+            <Field>
+              <FieldLabel htmlFor="signup-name">Name</FieldLabel>
+              <Input
+                id="signup-name"
+                type="text"
+                autoComplete="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Field>
+            <Field>
+              <FieldLabel htmlFor="signup-email">Email</FieldLabel>
+              <Input
+                id="signup-email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </Field>
+            <Field data-invalid={passwordsMismatch}>
+              <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+              <Input
+                id="signup-password"
+                type="password"
+                autoComplete="new-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                aria-invalid={passwordsMismatch}
+              />
+            </Field>
+            <Field data-invalid={passwordsMismatch}>
+              <FieldLabel htmlFor="signup-confirm">Confirm Password</FieldLabel>
+              <Input
+                id="signup-confirm"
+                type="password"
+                autoComplete="new-password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                aria-invalid={passwordsMismatch}
+              />
+            </Field>
+            {(errorMessage || passwordsMismatch) && (
+              <p role="alert" aria-live="assertive" className="text-center text-sm text-destructive">
+                {errorMessage || 'Passwords do not match'}
+              </p>
+            )}
+            <Button type="submit" className="w-full" disabled={!isFormValid || loadingFlag}>
+              {loadingFlag ? (
+                <>
+                  <Spinner data-icon="inline-start" />
+                  Processing
+                </>
+              ) : (
+                "Sign Up"
+              )}
+            </Button>
+          </FieldGroup>
+        </form>
+        <div className="mt-6 text-center text-sm">
+          <p className="text-muted-foreground">
+            Already have an account?{' '}
+            <Link href="/logIn" className="text-primary underline-offset-4 hover:underline">
+              Login here
+            </Link>
+          </p>
         </div>
-        <div>
-          <div className="my-2 text-lg">Email</div>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="input input-bordered block w-full"
-          />
-        </div>
-        <div>
-          <div className="my-2 text-lg">Password</div>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="input input-bordered block w-full"
-          />
-        </div>
-        <div>
-          <div className="my-2 text-lg">Confirm Password</div>
-          <input
-            type="password"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            required
-            className="input input-bordered block w-full"
-          />
-        </div>
-        {errorMessage && (
-          <div className="text-red-500 text-center">{errorMessage}</div>
-        )}
-        <button
-          type="submit"
-          className={`w-full py-2 px-4 font-semibold rounded-lg shadow-md ${isFormValid ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
-          disabled={!isFormValid}
-        >
-          {loadingFlag ? (
-            <div className="flex justify-center items-center space-x-2">
-              <span>Processing</span>
-              <div className="loading loading-spinner"></div>
-            </div>
-          ) : (
-            <div>Sign Up</div>
-          )}
-        </button>
-      </form>
-      <div className="mt-6 text-center">
-        <p className="">
-          Already have an account?{' '}
-          <Link href="/logIn" className="text-blue-600 hover:underline">
-            Login here
-          </Link>
-        </p>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

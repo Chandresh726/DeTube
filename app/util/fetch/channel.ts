@@ -1,4 +1,4 @@
-export const createChannel = async (userId: Number, channelName: String, description: String, logo: String) => {
+export const createChannel = async (userId: number, channelName: string, description: string, logo: string) => {
     const response = await fetch('/api/channel/register', {
         method: 'POST',
         headers: {
@@ -9,7 +9,7 @@ export const createChannel = async (userId: Number, channelName: String, descrip
     return await response.json();
 }
 
-export const getChannelData = async (id: Number) => {
+export const getChannelData = async (id: number) => {
     const response = await fetch(`/api/channel/data?id=${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch channel data');
@@ -17,7 +17,7 @@ export const getChannelData = async (id: Number) => {
     return await response.json();
 }
 
-export const sendThanks = async (amount: Number, userId: Number, channelId: Number) => {
+export const sendThanks = async (amount: number, userId: number, channelId: number) => {
     const response = await fetch('/api/channel/thanks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

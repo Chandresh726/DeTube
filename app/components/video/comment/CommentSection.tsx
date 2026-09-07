@@ -2,48 +2,61 @@
 import React, { useEffect, useState } from 'react'
 import AddComment from './AddComment';
 import { getComments } from '../../../util/fetch/comment';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const CommentSection = ({ videoId }) => {
-    const [comments, setComments] = useState(null);
+const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+
+const CommentSection = ({ videoId }: { videoId: string }) => {
+    const [comments, setComments] = useState<Array<{ image?: string | null; name: string; timeSince: string; content: string }> | null>(null);
     const [flag, setFlag] = useState(false);
 
     const triggerUpdate = () => {
-        setFlag(!flag)
+        setFlag((f) => !f)
     }
 
     useEffect(() => {
+        let cancelled = false;
+        const controller = new AbortController();
         const updateComments = async () => {
             const data = await getComments(videoId);
+            if (cancelled) return;
             if (data) {
                 setComments(data.comments);
             }
         }
         updateComments()
-    }, [flag])
-
-    if (!comments) return <div></div>
+        return () => {
+            cancelled = true;
+            controller.abort();
+        };
+    }, [flag, videoId])
 
     return (
         <div>
             <h3 className="text-2xl font-bold">Comments</h3>
             <AddComment videoId={videoId} triggerUpdate={triggerUpdate} />
             <div>
-                {comments.length === 0 ? (
-                    <p className="mt-2 text-gray-600">No comments yet.</p>
+                {!comments ? (
+                    <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading comments">
+                        <Skeleton className="h-12 w-full" />
+                        <Skeleton className="h-12 w-full" />
+                    </div>
+                ) : comments.length === 0 ? (
+                    <p className="mt-2 text-sm text-muted-foreground">No comments yet. Be the first to comment.</p>
                 ) : (
                     comments.map((comment, index) => (
-                        <div key={index} className="flex items-start my-4">
-                            <img
-                                src={comment.image || "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"}
-                                alt={comment.name}
-                                className="w-10 h-10 rounded-full object-cover mr-4"
-                            />
+                        <div key={`${comment.name}-${index}`} className="my-4 flex items-start">
+                            <Avatar className="mr-4 size-10">
+                                <AvatarImage src={comment.image || DEFAULT_AVATAR} alt={comment.name} />
+                                <AvatarFallback>{comment.name.slice(0, 1)}</AvatarFallback>
+                            </Avatar>
                             <div className="grow">
-                                <div className="flex items-center">
+                                <div className="flex items-center gap-4">
                                     <span className="font-semibold">{comment.name}</span>
-                                    <span className='ml-10 text-xs text-gray-400'>{comment.timeSince}</span>
+                                    <span className="text-xs text-muted-foreground">{comment.timeSince}</span>
                                 </div>
-                                <p>{comment.content}</p>
+                                <p className="mt-1">{comment.content}</p>
                             </div>
                         </div>
                     ))

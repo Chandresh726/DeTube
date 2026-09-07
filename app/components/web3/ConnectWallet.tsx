@@ -3,9 +3,12 @@ import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import React, { useEffect, useState } from 'react';
 import bs58 from 'bs58';
+import { toast } from 'sonner';
 import { checkUserWallet, verifyUserWallet } from '../../util/fetch/wallet';
+import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
 
-const ConnectWallet = ({ setWalletVerified, userId }) => {
+const ConnectWallet = ({ setWalletVerified, userId }: { setWalletVerified: (v: boolean) => void; userId: number }) => {
     const { publicKey, connected, signMessage } = useWallet();
     const [loading, setLoading] = useState<boolean>(true);
     const [verified, setVerified] = useState<boolean>(false);
@@ -17,6 +20,7 @@ const ConnectWallet = ({ setWalletVerified, userId }) => {
             setWalletVerified(false);
             isWalletVerified(publicKey.toString());
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [connected, publicKey]);
 
     const verifyWallet = async () => {
@@ -24,48 +28,62 @@ const ConnectWallet = ({ setWalletVerified, userId }) => {
         try {
             if (!publicKey || !signMessage) throw new Error('Wallet not connected');
 
-            // Generate a unique message to sign (this could come from the backend)
             const message = `Verify this wallet: ${publicKey.toString()} - ${Date.now()}`;
             const encodedMessage = new TextEncoder().encode(message);
 
-            // Sign the message
             const signature = await signMessage(encodedMessage);
 
-            // Send the signature and public key to the backend for verification
             const response = await verifyUserWallet(publicKey.toString(), bs58.encode(signature), message, userId)
             if (response.isVerified) {
                 setVerified(true)
                 setWalletVerified(true);
             } else {
                 setWalletVerified(false);
+                toast.error('Wallet verification failed');
             }
         } catch (error) {
-            console.error('Failed to verify wallet', error);
+            toast.error('Failed to verify wallet');
         } finally {
             setLoading(false);
         }
     };
 
     const isWalletVerified = async (address: string) => {
-        const res = await checkUserWallet(address, userId);
-        if (res.walletExists) {
-            setWalletVerified(true);
-            setVerified(true);
+        try {
+            const res = await checkUserWallet(address, userId);
+            if (res.walletExists) {
+                setWalletVerified(true);
+                setVerified(true);
+            }
+        } catch {
+            // leave unverified
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     }
 
     return (
-        <div className="flex flex-col items-center mb-4">
-            <div className='flex flex-row items-center'>
+        <div className="mb-4 flex flex-col items-center">
+            <div className="flex flex-row items-center gap-2">
                 <WalletMultiButton />
-                <button
-                    className={`btn btn-outline btn-success mx-2 ${publicKey ? 'display' : 'hidden'}`}
-                    onClick={() => verifyWallet()}
-                    disabled={loading || verified}
-                >
-                    {loading ? 'Verifying...' : (verified ? 'Verified' : 'Verify Wallet')}
-                </button>
+                {publicKey ? (
+                    <Button
+                        variant="outline"
+                        onClick={() => verifyWallet()}
+                        disabled={loading || verified}
+                    >
+                        {loading ? (
+                            <>
+                                <Spinner data-icon="inline-start" />
+                                Verifying…
+                            </>
+                        ) : verified ? (
+                            'Verified'
+                        ) : (
+                            'Verify Wallet'
+                        )}
+                    </Button>
+                ) : null}
             </div>
         </div>
     );

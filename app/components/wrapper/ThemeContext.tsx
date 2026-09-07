@@ -37,8 +37,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      // Apply the current theme by setting the data-theme attribute on the html element
+      // shadCN theme: .dark class drives tokens. data-theme kept for
+      // backwards-compat during rollout, safe to remove after QA.
       document.documentElement.setAttribute("data-theme", theme);
+      document.documentElement.classList.toggle("dark", theme === "dark");
+      document.documentElement.style.colorScheme = theme;
       // Save the theme to localStorage
       localStorage.setItem('theme', theme);
     }

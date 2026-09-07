@@ -1,4 +1,4 @@
-export const getSubscriptionsData = async (id: Number) => {
+export const getSubscriptionsData = async (id: number) => {
     const response = await fetch(`/api/subscriptions/data?id=${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch video data');
@@ -6,7 +6,7 @@ export const getSubscriptionsData = async (id: Number) => {
     return await response.json();
 };
 
-export const getSubscriptionsDataWithVideos = async (id: Number) => {
+export const getSubscriptionsDataWithVideos = async (id: number) => {
     const response = await fetch(`/api/subscriptions/data/video?id=${id}`);
     if (!response.ok) {
         throw new Error('Failed to fetch video data');
@@ -14,7 +14,7 @@ export const getSubscriptionsDataWithVideos = async (id: Number) => {
     return await response.json();
 };
 
-export const addSubscription = async (userId: Number, channelId: Number, status: String) => {
+export const addSubscription = async (userId: number, channelId: number, status: string) => {
     const response = await fetch('/api/subscriptions/subscribe', {
         method: 'POST',
         headers: {
@@ -25,7 +25,7 @@ export const addSubscription = async (userId: Number, channelId: Number, status:
     return await response.json();
 };
 
-export const checkIfSubscribed = async (userId: Number, channelId: Number) => {
+export const checkIfSubscribed = async (userId: number, channelId: number) => {
     const data = await addSubscription(userId, channelId, 'check');
     return data.isSubscribed;
 };

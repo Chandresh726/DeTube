@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { getSubscriptionsData } from '../../util/fetch/subscription';
 
 interface NavBarWrapperProps {
-    session: any;
+    session: { user?: { id: number } } | null;
     children: React.ReactNode;
 }
 
@@ -19,27 +19,14 @@ interface Subscription {
 const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
     const [sidebarState, setSidebarState] = useState<'full' | 'icons' | 'closed'>('full');
+    const [mobileOpen, setMobileOpen] = useState(false);
     const pathname = usePathname();
 
-    // Load the sidebar state from localStorage on mount
-    // useEffect(() => {
-    //     const savedState = localStorage.getItem('sidebarState');
-    //     if (savedState) {
-    //         setSidebarState(savedState as 'full' | 'icons' | 'closed');
-    //     }
-    // }, []);
-
-    const handleResize = () => {
-        if (window.innerWidth >= 1024) { // Tailwind's 'lg' breakpoint
-            setSidebarState('full');
-        } else {
-            setSidebarState('closed');
-        }
-    };
-
     useEffect(() => {
-        if (session?.user.id) {
+        if (session?.user?.id) {
             fetchSubscriptions(session.user.id);
+        } else {
+            setSubscriptions([]);
         }
     }, [session]);
 
@@ -48,47 +35,59 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
             const data = await getSubscriptionsData(userId);
             setSubscriptions(data.subscriptions);
         } catch (error) {
-            console.error('Error fetching subscriptions:', error);
+            setSubscriptions([]);
         }
     };
 
     useEffect(() => {
         const savedState = localStorage.getItem('sidebarState');
-        if (savedState) {
-            setSidebarState(savedState as 'full' | 'icons' | 'closed');
-        } else {
-            handleResize();
-        }
         if (pathname === '/logIn' || pathname === '/signUp') {
             setSidebarState('closed');
+            return;
         }
-        window.addEventListener('resize', handleResize);
-        return () => {
-            window.removeEventListener('resize', handleResize);
-        };
+        if (savedState === 'full' || savedState === 'icons' || savedState === 'closed') {
+            setSidebarState(savedState);
+        } else if (window.innerWidth >= 1024) {
+            setSidebarState('full');
+        } else {
+            setSidebarState('closed');
+        }
+    }, [pathname]);
+
+    useEffect(() => {
+        setMobileOpen(false);
     }, [pathname]);
 
     const handleToggleSidebar = () => {
+        if (window.innerWidth < 1024) {
+            setMobileOpen((v) => !v);
+            return;
+        }
         setSidebarState(prevState => {
-            const newState = window.innerWidth >= 1024
-                ? (prevState === 'full' ? 'icons' : 'full')
-                : (prevState === 'closed' ? 'full' : 'closed');
-            
-            // Save the new sidebar state to localStorage
+            const newState = prevState === 'full' ? 'icons' : 'full';
             localStorage.setItem('sidebarState', newState);
-            
             return newState;
         });
     };
+
+    const isAuthPage = pathname === '/logIn' || pathname === '/signUp';
+    const effectiveState = !isAuthPage && mobileOpen ? 'full' : sidebarState;
 
     return (
         <div>
             <Navbar session={session} onToggleSidebar={handleToggleSidebar} />
             <div className="flex pt-16">
-                <SideBar session={session} sidebarState={sidebarState} subscriptions={subscriptions} />
-                <div className={`grow transition-margin duration-200 ease-in-out ${
-                    sidebarState === 'full' ? 'md:ml-64' : 
-                    sidebarState === 'icons' ? 'md:ml-16' : 'ml-0 lg:px-20'
+                <SideBar session={session} sidebarState={effectiveState} subscriptions={subscriptions} />
+                {!isAuthPage && mobileOpen ? (
+                    <button
+                        aria-label="Close sidebar"
+                        className="fixed inset-0 top-16 z-[5] bg-black/50 md:hidden"
+                        onClick={() => setMobileOpen(false)}
+                    />
+                ) : null}
+                <div className={`grow transition-[margin] duration-200 ease-in-out ${
+                    effectiveState === 'full' ? 'md:ml-64' :
+                    effectiveState === 'icons' ? 'md:ml-16' : 'ml-0'
                 }`}>
                     <main className="p-4">
                         {children}

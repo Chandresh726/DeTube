@@ -2,12 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { AiOutlineLike, AiOutlineDislike } from 'react-icons/ai';
+import { toast } from 'sonner';
 import { reactToVideo } from '../../util/fetch/reaction';
-import { useTheme } from '../wrapper/ThemeContext';
 import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
-const Reaction = ({ stats, videoId }) => {
-    const { theme } = useTheme();
+const Reaction = ({ stats, videoId }: { stats: { likeCount: number; dislikeCount: number }; videoId: string }) => {
     const { data: session } = useSession();
     const [likes, setLikes] = useState(stats.likeCount);
     const [dislikes, setDislikes] = useState(stats.dislikeCount);
@@ -16,19 +17,31 @@ const Reaction = ({ stats, videoId }) => {
     const userId = session?.user?.id;
     const router = useRouter();
 
-    // Fetch initial reaction status
     useEffect(() => {
-        if (userId) {
-            const fetchInitialReaction = async () => {
+        setLikes(stats.likeCount);
+        setDislikes(stats.dislikeCount);
+    }, [stats.likeCount, stats.dislikeCount]);
+
+    useEffect(() => {
+        if (!userId) return;
+        let cancelled = false;
+        const fetchInitialReaction = async () => {
+            try {
                 const response = await reactToVideo(userId, videoId, 'check');
+                if (cancelled) return;
                 if (response.reactionType === 'LIKE') {
                     setIsLiked(true);
                 } else if (response.reactionType === 'DISLIKE') {
                     setIsDisliked(true);
                 }
-            };
-            fetchInitialReaction();
-        }
+            } catch {
+                if (!cancelled) toast.error('Failed to load reaction');
+            }
+        };
+        fetchInitialReaction();
+        return () => {
+            cancelled = true;
+        };
     }, [userId, videoId]);
 
     const handleLike = async () => {
@@ -37,21 +50,25 @@ const Reaction = ({ stats, videoId }) => {
             return;
         }
 
-        let status;
+        let status: 'like' | 'remove';
         if (isLiked) {
-            setLikes(likes - 1);
+            setLikes((v) => v - 1);
             status = 'remove';
             setIsLiked(false);
         } else {
-            setLikes(likes + 1);
+            setLikes((v) => v + 1);
             if (isDisliked) {
-                setDislikes(dislikes - 1);
+                setDislikes((v) => v - 1);
                 setIsDisliked(false);
             }
             status = 'like';
             setIsLiked(true);
         }
-        await reactToVideo(userId, videoId, status);
+        try {
+            await reactToVideo(userId, videoId, status);
+        } catch {
+            toast.error('Reaction failed');
+        }
     };
 
     const handleDislike = async () => {
@@ -60,40 +77,52 @@ const Reaction = ({ stats, videoId }) => {
             return;
         }
 
-        let status;
+        let status: 'dislike' | 'remove';
         if (isDisliked) {
-            setDislikes(dislikes - 1);
+            setDislikes((v) => v - 1);
             status = 'remove';
             setIsDisliked(false);
         } else {
-            setDislikes(dislikes + 1);
+            setDislikes((v) => v + 1);
             if (isLiked) {
-                setLikes(likes - 1);
+                setLikes((v) => v - 1);
                 setIsLiked(false);
             }
             status = 'dislike';
             setIsDisliked(true);
         }
-        await reactToVideo(userId, videoId, status);
+        try {
+            await reactToVideo(userId, videoId, status);
+        } catch {
+            toast.error('Reaction failed');
+        }
     };
 
     return (
-        <div className={`my-4 w-full p-2 rounded-3xl flex items-center space-x-4 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-500'}`}>
-            <div
-                className={`flex flex-col items-center justify-center w-1/2 cursor-pointer ${isLiked ? 'text-green-500' : 'text-white'} hover:text-green-500 ${!userId && 'cursor-not-allowed'}`}
+        <div className="my-4 flex w-full items-center gap-2 rounded-2xl border bg-muted p-2">
+            <Button
+                variant={isLiked ? 'secondary' : 'ghost'}
+                className="flex-1 flex-col gap-1 data-[active=true]:text-green-600"
+                data-active={isLiked}
                 onClick={handleLike}
+                aria-pressed={isLiked}
+                aria-label={`Like video, ${likes} likes`}
             >
-                <AiOutlineLike size={28} className={`${isLiked ? 'text-green-500' : ''}`} />
-                <span className="mt-1 text-xs">{likes} Likes</span>
-            </div>
-            <div className="divider divider-horizontal"></div>
-            <div
-                className={`flex flex-col items-center justify-center w-1/2 cursor-pointer ${isDisliked ? 'text-red-500' : 'text-white'} hover:text-red-500 ${!userId && 'cursor-not-allowed'}`}
+                <AiOutlineLike size={22} aria-hidden data-icon="inline-start" />
+                <span className="text-xs">{likes} Likes</span>
+            </Button>
+            <Separator orientation="vertical" className="h-10" />
+            <Button
+                variant={isDisliked ? 'secondary' : 'ghost'}
+                className="flex-1 flex-col gap-1 data-[active=true]:text-red-600"
+                data-active={isDisliked}
                 onClick={handleDislike}
+                aria-pressed={isDisliked}
+                aria-label={`Dislike video, ${dislikes} dislikes`}
             >
-                <AiOutlineDislike size={28} className={`${isDisliked ? 'text-red-500' : ''}`} />
-                <span className="mt-1 text-xs">{dislikes} Dislikes</span>
-            </div>
+                <AiOutlineDislike size={22} aria-hidden data-icon="inline-start" />
+                <span className="text-xs">{dislikes} Dislikes</span>
+            </Button>
         </div>
     );
 };

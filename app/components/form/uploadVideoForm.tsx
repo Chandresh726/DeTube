@@ -1,213 +1,204 @@
 "use client";
-import React, { useEffect } from 'react'
-import { useState } from 'react';
+import React, { useState } from 'react'
 import { MdUpload } from "react-icons/md";
 import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation'
-import ProgressBar from '../video/progressBar';
+import { toast } from 'sonner';
 import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/r2';
 import { createVideo } from '../../util/fetch/video';
-import { useTheme } from '../wrapper/ThemeContext';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Spinner } from '@/components/ui/spinner';
 
-const UploadVideoForm = ({ channelId }: { channelId: Number }) => {
-    const { theme } = useTheme();
-    const [thumbnail, setThumbnail] = useState<string | ArrayBuffer | null>(null);
-    const [video, setVideo] = useState<string | File | null>(null);
-    const [videoId, setVideoId] = useState<string | null>(null);
+const UploadVideoForm = ({ channelId }: { channelId: number }) => {
+    const [thumbnail, setThumbnail] = useState<string | null>(null);
+    const [video, setVideo] = useState<string | null>(null);
+    const [videoId] = useState<string>(() => uuidv4());
     const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [progress, setProgress] = useState(0);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [isFormValid, setIsFormValid] = useState(false);
     const [loadingFlag, setLoadingFlag] = useState(false);
 
-    useEffect(() => {
-        setIsFormValid(title !== '' && description !== '' && thumbnail !== null && video !== null);
-    }, [title, description, thumbnail, video]);
-
-    useEffect(() => {
-        setVideoId(uuidv4() as string)
-    }, []);
+    const isFormValid =
+        title !== '' &&
+        description !== '' &&
+        thumbnail !== null &&
+        video !== null &&
+        !uploadingThumbnail &&
+        !uploadingVideo;
 
     const router = useRouter()
 
-    const handleThumbnailChange = async (event) => {
+    const handleThumbnailChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            try {
-                setUploadingThumbnail(true)
-                // Send request to get presigned URL
-                const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId, file.type);
+        if (!file) return;
+        try {
+            setUploadingThumbnail(true)
+            const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId, file.type);
+            const uploadResponse = await hitPresignedurl(presignedUrl, file)
 
-                // Upload the file using the presigned URL
-                const uploadResponse = await hitPresignedurl(presignedUrl, file)
-
-                if (uploadResponse.ok) {
-                    setThumbnail(url)
-                } else {
-                    console.error('Upload failed with status:', uploadResponse.status);
-                }
-                setUploadingThumbnail(false)
-            } catch (error) {
-                console.error('Error:', error);
+            if (uploadResponse.ok) {
+                setThumbnail(url)
+            } else {
+                toast.error('Thumbnail upload failed');
             }
+        } catch (error) {
+            toast.error('Thumbnail upload failed');
+        } finally {
+            setUploadingThumbnail(false)
         }
     };
 
     const handleVideoChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file) {
-            try {
-                setUploadingVideo(true)
-                // Send request to get presigned URL
-                const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId, file.type);
+        if (!file) return;
+        try {
+            setUploadingVideo(true)
+            setProgress(0)
+            const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId, file.type);
+            const uploadResponse = await hitVideoPresignedurl(presignedUrl, file, (p) => {
+                setProgress(p);
+            });
 
-                // Upload the file using the presigned URL
-                const uploadResponse = await hitVideoPresignedurl(presignedUrl, file, (progress) => {
-                    setProgress(progress);
-                });
-
-                if (uploadResponse.DONE) {
-                    setVideo(url)
-                } else {
-                    console.error('Upload failed with status:', uploadResponse.status);
-                }
-            } catch (error) {
-                console.error('Error:', error);
+            if (uploadResponse.DONE) {
+                setVideo(url)
+            } else {
+                toast.error('Video upload failed');
             }
+        } catch (error) {
+            toast.error('Video upload failed');
+        } finally {
+            setUploadingVideo(false)
         }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        setLoadingFlag(true)
         e.preventDefault();
         if (!thumbnail) {
-            console.error('Thumbnail is required');
+            toast.error('Thumbnail is required');
             return;
         }
         if (!video) {
-            console.error('Video is required');
+            toast.error('Video is required');
             return;
         }
+        setLoadingFlag(true)
         let redirectPath = "/"
         try {
             const response = await createVideo(channelId, videoId, title, description, thumbnail, video);
             if (response && response.videoId) {
                 redirectPath = '/video/' + response.videoId
-                setLoadingFlag(false)
             } else {
-                console.error('Failed to update Session');
+                toast.error('Failed to publish video');
             }
         } catch (error) {
-            console.error('Error creating channel:', error);
+            toast.error('Failed to publish video');
+        } finally {
+            setLoadingFlag(false)
         }
         router.push(redirectPath)
     };
 
     return (
-        <div className={`p-2 lg:mx-32 mx-auto ${theme==='dark'?'text-gray-400':'text-black'}`}>
-            <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="md:relative md:flex space-x-4">
-                    <div>
-                        <div className="my-2 text-lg">Upload Thumbnail</div>
-                        <div className="relative md:w-96 aspect-video border border-gray-600 rounded-lg overflow-hidden">
+        <Card className="mx-auto p-0 lg:mx-32">
+          <CardHeader>
+            <CardTitle>Upload Video</CardTitle>
+            <CardDescription>Publish to your channel</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit}>
+              <FieldGroup>
+                <div className="flex flex-col gap-4 md:flex-row">
+                    <Field>
+                        <FieldLabel htmlFor="upload-thumbnail">Upload Thumbnail</FieldLabel>
+                        <div className="relative aspect-video overflow-hidden rounded-xl border md:w-96">
                             {uploadingThumbnail ? (
-                                <div className="skeleton h-full w-full"></div>
+                                <Skeleton className="h-full w-full rounded-none" />
                             ) : (thumbnail ?
-                                <img src={thumbnail as string} alt="Thumbnail Preview" className="w-full h-full object-cover" /> : <div className="h-full w-full"></div>
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" /> : <div className="h-full w-full bg-muted" />
                             )}
-                            <label className="absolute inset-0 flex items-center justify-center cursor-pointer">
-                                <input
+                            <label htmlFor="upload-thumbnail" className="absolute inset-0 flex cursor-pointer items-center justify-center bg-background/60 text-sm font-medium hover:bg-background/80">
+                                <Input
+                                    id="upload-thumbnail"
                                     type="file"
                                     accept="image/*"
                                     onChange={handleThumbnailChange}
                                     disabled={uploadingThumbnail}
-                                    className="opacity-0 absolute inset-0"
+                                    className="absolute inset-0 cursor-pointer opacity-0"
                                 />
                                 {uploadingThumbnail ? 'Uploading...'
                                     : (thumbnail ? 'Change Thumbnail'
-                                        : (<div className='flex items-center justify-center'> Upload
-                                            <MdUpload className='w-5 h-5 mx-2' />
-                                        </div>))
+                                        : (<span className="flex items-center gap-2">Upload<MdUpload aria-hidden /></span>))
                                 }
                             </label>
                         </div>
-                    </div>
+                    </Field>
 
-                    <div className='hidden md:block w-full'>
-                        <div>
-                            <div className="my-2 text-lg">Select Video</div>
-                            <input
+                    <div className="flex w-full flex-col gap-4">
+                        <Field>
+                            <FieldLabel htmlFor="upload-video">Select Video</FieldLabel>
+                            <Input
+                                id="upload-video"
                                 type="file"
                                 accept="video/*"
                                 onChange={handleVideoChange}
-                                className="file-input file-input-bordered w-full"
                             />
-                            <ProgressBar progress={progress} flag={uploadingVideo} />
-                        </div>
-                        <div>
-                            <div className="my-2 text-lg">Title</div>
-                            <input
+                            {uploadingVideo || progress > 0 ? (
+                              <div className="flex flex-col gap-1" aria-live="polite">
+                                <Progress value={progress} />
+                                <span className="text-xs text-muted-foreground">
+                                  {uploadingVideo ? `Uploading… ${progress}%` : `Uploaded ${progress}%`}
+                                </span>
+                              </div>
+                            ) : null}
+                        </Field>
+                        <Field>
+                            <FieldLabel htmlFor="upload-title">Title</FieldLabel>
+                            <Input
+                                id="upload-title"
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 required
-                                className="input input-bordered block w-full"
                             />
-                        </div>
+                        </Field>
                     </div>
                 </div>
 
-                <div className='md:hidden'>
-                    <div className='w-full'>
-                        <div>
-                            <div className="my-2 text-lg">Select Video</div>
-                            <input
-                                type="file"
-                                accept="video/*"
-                                onChange={handleVideoChange}
-                                className="file-input file-input-bordered w-full"
-                            />
-                            <ProgressBar progress={progress} flag={uploadingVideo} />
-                        </div>
-                        <div>
-                            <div className="my-2 text-lg">Title</div>
-                            <input
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                required
-                                className="input input-bordered block w-full"
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div>
-                    <div className="my-2 text-lg">Description</div>
-                    <textarea
+                <Field>
+                    <FieldLabel htmlFor="upload-desc">Description</FieldLabel>
+                    <Textarea
+                        id="upload-desc"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
                         required
-                        className="textarea textarea-bordered block w-full"
                         rows={4}
                     />
-                </div>
-                <button
+                </Field>
+                <Button
                     type="submit"
-                    className={`w-full py-2 px-4 font-semibold rounded-lg shadow-md ${isFormValid ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'bg-gray-400 text-gray-700 cursor-not-allowed'}`}
-                    disabled={!isFormValid}
+                    className="w-full"
+                    disabled={!isFormValid || loadingFlag}
                 >
                     {loadingFlag ?
-                        <div className="flex justify-center items-center space-x-2">
-                            <span>Processing</span>
-                            <div className="loading loading-spinner"></div>
-                        </div>
-                        : <div>Submit</div>}
-                </button>
+                        <>
+                          <Spinner data-icon="inline-start" />
+                          Processing
+                        </>
+                        : "Publish Video"}
+                </Button>
+              </FieldGroup>
             </form>
-        </div>
+          </CardContent>
+        </Card>
     )
 }
 
