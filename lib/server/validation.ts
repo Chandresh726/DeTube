@@ -1,5 +1,5 @@
-import { z } from "zod";
-import bs58 from "bs58";
+import { z } from 'zod';
+import bs58 from 'bs58';
 import {
   DEFAULT_PAGE_SIZE,
   FEED_DEFAULT_PAGE_SIZE,
@@ -7,7 +7,7 @@ import {
   MAX_PAGE_SIZE,
   MAX_THUMBNAIL_BYTES,
   MAX_VIDEO_BYTES,
-} from "./env";
+} from './env';
 
 const idParam = z.coerce.number().int().positive();
 
@@ -34,31 +34,23 @@ function isBase58(value: string): boolean {
 }
 
 const base58String = (min: number, max: number) =>
-  z
-    .string()
-    .trim()
-    .min(min)
-    .max(max)
-    .refine(isBase58, "must be base58-encoded");
+  z.string().trim().min(min).max(max).refine(isBase58, 'must be base58-encoded');
 
 /** Lamports as positive integer. Accepts number|string|bigint, returns bigint. */
 export const lamportsSchema = z
   .union([z.bigint(), z.string().trim().min(1), z.number()])
-  .refine(
-    (v) => {
-      if (typeof v === "number") {
-        return Number.isInteger(v) && v > 0 && v <= Number.MAX_SAFE_INTEGER;
-      }
-      try {
-        const b = typeof v === "bigint" ? v : BigInt(v as string);
-        return b > 0n && b <= BigInt(Number.MAX_SAFE_INTEGER);
-      } catch {
-        return false;
-      }
-    },
-    "amount must be a positive integer in lamports",
-  )
-  .transform((v) => (typeof v === "bigint" ? v : typeof v === "number" ? BigInt(v) : BigInt(v as string)));
+  .refine((v) => {
+    if (typeof v === 'number') {
+      return Number.isInteger(v) && v > 0 && v <= Number.MAX_SAFE_INTEGER;
+    }
+    try {
+      const b = typeof v === 'bigint' ? v : BigInt(v as string);
+      return b > 0n && b <= BigInt(Number.MAX_SAFE_INTEGER);
+    } catch {
+      return false;
+    }
+  }, 'amount must be a positive integer in lamports')
+  .transform((v) => (typeof v === 'bigint' ? v : typeof v === 'number' ? BigInt(v) : BigInt(v as string)));
 
 const text = (min: number, max: number) => z.string().trim().min(min).max(max);
 
@@ -88,7 +80,7 @@ export const videoAddSchema = z.object({
   channelId: z.coerce.number().int().positive(),
   videoId: z.string().trim().uuid().max(64),
   title: text(1, 160),
-  description: text(0, 5000).optional().default(""),
+  description: text(0, 5000).optional().default(''),
   thumbnail: z.string().trim().url().max(2048),
   video: z.string().trim().url().max(2048),
 });
@@ -102,19 +94,19 @@ export const commentAddSchema = z.object({
 export const reactionSetSchema = z.object({
   userId: legacyUserId,
   videoId: videoIdString,
-  type: z.enum(["LIKE", "DISLIKE"]),
+  type: z.enum(['LIKE', 'DISLIKE']),
 });
 
 export const reactionLegacySchema = z.object({
   userId: legacyUserId,
   videoId: videoIdString,
-  status: z.enum(["check", "like", "dislike", "remove"]),
+  status: z.enum(['check', 'like', 'dislike', 'remove']),
 });
 
 export const subscribeSchema = z.object({
   userId: legacyUserId,
   channelId: z.coerce.number().int().positive(),
-  status: z.enum(["check", "sub", "unsub"]),
+  status: z.enum(['check', 'sub', 'unsub']),
 });
 
 export const thanksSchema = z.object({
@@ -153,24 +145,26 @@ const contentTypeString = z.string().trim().min(3).max(128);
 
 export const MAX_UPLOAD_BYTES_BY_FILE_TYPE: Record<string, number> = {
   thumbnail: MAX_THUMBNAIL_BYTES,
-  "channel-logo": MAX_CHANNEL_LOGO_BYTES,
-  "temp-video": MAX_VIDEO_BYTES,
+  'channel-logo': MAX_CHANNEL_LOGO_BYTES,
+  'temp-video': MAX_VIDEO_BYTES,
 };
 
-export const presignedUrlSchema = z.object({
-  fileType: z.enum(["thumbnail", "temp-video", "channel-logo"]),
-  id: z.string().trim().uuid(),
-  contentType: contentTypeString,
-  contentLength: z.coerce.number().int().positive().optional(),
-}).superRefine((v, ctx) => {
-  const cap = MAX_UPLOAD_BYTES_BY_FILE_TYPE[v.fileType];
-  if (v.contentLength !== undefined && cap !== undefined && v.contentLength > cap) {
-    ctx.addIssue({
-      code: "custom",
-      message: `contentLength exceeds ${cap} bytes for ${v.fileType}`,
-    });
-  }
-});
+export const presignedUrlSchema = z
+  .object({
+    fileType: z.enum(['thumbnail', 'temp-video', 'channel-logo']),
+    id: z.string().trim().uuid(),
+    contentType: contentTypeString,
+    contentLength: z.coerce.number().int().positive().optional(),
+  })
+  .superRefine((v, ctx) => {
+    const cap = MAX_UPLOAD_BYTES_BY_FILE_TYPE[v.fileType];
+    if (v.contentLength !== undefined && cap !== undefined && v.contentLength > cap) {
+      ctx.addIssue({
+        code: 'custom',
+        message: `contentLength exceeds ${cap} bytes for ${v.fileType}`,
+      });
+    }
+  });
 
 export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {
   return schema.parse(data);

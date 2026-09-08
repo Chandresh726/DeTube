@@ -1,6 +1,6 @@
-import { getServerSession, type Session } from "next-auth";
-import { authOptions } from "@/app/util/auth";
-import { AppError } from "./http";
+import { getServerSession, type Session } from 'next-auth';
+import { authOptions } from '@/app/util/auth';
+import { AppError } from './http';
 
 export interface AuthContext {
   session: Session;
@@ -19,11 +19,11 @@ export interface AuthContext {
 export async function requireSession(): Promise<AuthContext> {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
-    throw new AppError("UNAUTHORIZED", "Authentication required");
+    throw new AppError('UNAUTHORIZED', 'Authentication required');
   }
   const userId = Number(session.user.id);
   if (!Number.isInteger(userId) || userId <= 0) {
-    throw new AppError("UNAUTHORIZED", "Invalid session");
+    throw new AppError('UNAUTHORIZED', 'Invalid session');
   }
   return { session, userId };
 }
@@ -32,34 +32,34 @@ export async function requireSession(): Promise<AuthContext> {
  * Enforce that a legacy client-supplied id matches the session id.
  * Pass `undefined` when the client omitted the field (server uses session).
  */
-export function assertOwnership(sessionUserId: number, suppliedId: unknown, field = "userId"): number {
-  if (suppliedId === undefined || suppliedId === null || suppliedId === "") {
+export function assertOwnership(sessionUserId: number, suppliedId: unknown, field = 'userId'): number {
+  if (suppliedId === undefined || suppliedId === null || suppliedId === '') {
     return sessionUserId;
   }
-  if (typeof suppliedId === "number") {
+  if (typeof suppliedId === 'number') {
     if (!Number.isInteger(suppliedId) || suppliedId <= 0) {
-      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+      throw new AppError('BAD_REQUEST', `Invalid ${field}`);
     }
     if (suppliedId !== sessionUserId) {
-      throw new AppError("FORBIDDEN", "Cannot act on behalf of another user");
+      throw new AppError('FORBIDDEN', 'Cannot act on behalf of another user');
     }
     return suppliedId;
   }
-  if (typeof suppliedId === "string") {
+  if (typeof suppliedId === 'string') {
     const trimmed = suppliedId.trim();
     if (!/^\d+$/.test(trimmed)) {
-      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+      throw new AppError('BAD_REQUEST', `Invalid ${field}`);
     }
     const n = Number(trimmed);
     if (!Number.isSafeInteger(n) || n <= 0) {
-      throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+      throw new AppError('BAD_REQUEST', `Invalid ${field}`);
     }
     if (n !== sessionUserId) {
-      throw new AppError("FORBIDDEN", "Cannot act on behalf of another user");
+      throw new AppError('FORBIDDEN', 'Cannot act on behalf of another user');
     }
     return n;
   }
-  throw new AppError("BAD_REQUEST", `Invalid ${field}`);
+  throw new AppError('BAD_REQUEST', `Invalid ${field}`);
 }
 
 /**
@@ -68,7 +68,11 @@ export function assertOwnership(sessionUserId: number, suppliedId: unknown, fiel
  * Backend-only helper — query `id` is redundant (identity comes from session) and
  * exists only for backward compat with existing frontend callers.
  */
-export function assertQueryOwnership(sessionUserId: number, rawId: string | null, resource = "resource"): number {
-  if (rawId === null || rawId === "") return sessionUserId;
-  return assertOwnership(sessionUserId, rawId, "id");
+export function assertQueryOwnership(
+  sessionUserId: number,
+  rawId: string | null,
+  resource = 'resource',
+): number {
+  if (rawId === null || rawId === '') return sessionUserId;
+  return assertOwnership(sessionUserId, rawId, 'id');
 }

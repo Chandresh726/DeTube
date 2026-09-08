@@ -1,6 +1,6 @@
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@/app/generated/prisma/client";
-import { env } from "./env";
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@/app/generated/prisma/client';
+import { env } from './env';
 
 const prismaClientSingleton = () => {
   const adapter = new PrismaPg({
@@ -17,6 +17,6 @@ const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
 
 export default prisma;
 
-if (env.nodeEnv !== "production") globalThis.prismaGlobal = prisma;
+if (env.nodeEnv !== 'production') globalThis.prismaGlobal = prisma;
 
 export type Db = PrismaClient | Parameters<Parameters<typeof prisma.$transaction>[0]>[0];

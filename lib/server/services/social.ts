@@ -1,7 +1,7 @@
-import prisma from "../db";
-import { AppError, isPrismaCode } from "../http";
-import { MAX_PAGE_SIZE } from "../env";
-import { timeSince } from "../presenters";
+import prisma from '../db';
+import { AppError, isPrismaCode } from '../http';
+import { MAX_PAGE_SIZE } from '../env';
+import { timeSince } from '../presenters';
 
 export const reactionService = {
   async get(videoId: string, _userId: number) {
@@ -11,39 +11,39 @@ export const reactionService = {
         where: { videoId_userId: { videoId, userId: _userId } },
       }),
     ]);
-    if (!video) throw new AppError("NOT_FOUND", "Video not found");
+    if (!video) throw new AppError('NOT_FOUND', 'Video not found');
     return reaction?.type ?? null;
   },
 
-  async set(videoId: string, userId: number, type: "LIKE" | "DISLIKE") {
+  async set(videoId: string, userId: number, type: 'LIKE' | 'DISLIKE') {
     const video = await prisma.video.findUnique({ where: { id: videoId }, select: { id: true } });
-    if (!video) throw new AppError("NOT_FOUND", "Video not found");
+    if (!video) throw new AppError('NOT_FOUND', 'Video not found');
     const existing = await prisma.reaction.findUnique({
       where: { videoId_userId: { videoId, userId } },
     });
     if (existing) {
-      if (existing.type === type) return { status: "exists" as const };
+      if (existing.type === type) return { status: 'exists' as const };
       await prisma.reaction.update({
         where: { videoId_userId: { videoId, userId } },
         data: { type },
       });
-      return { status: "updated" as const };
+      return { status: 'updated' as const };
     }
     try {
       await prisma.reaction.create({ data: { videoId, userId, type } });
     } catch (e: unknown) {
-      if (isPrismaCode(e, "P2002")) return { status: "exists" as const };
-      if (isPrismaCode(e, "P2003")) throw new AppError("NOT_FOUND", "Video not found");
+      if (isPrismaCode(e, 'P2002')) return { status: 'exists' as const };
+      if (isPrismaCode(e, 'P2003')) throw new AppError('NOT_FOUND', 'Video not found');
       throw e;
     }
-    return { status: "created" as const };
+    return { status: 'created' as const };
   },
 
   async remove(videoId: string, userId: number) {
     try {
       await prisma.reaction.delete({ where: { videoId_userId: { videoId, userId } } });
     } catch (e: unknown) {
-      if (isPrismaCode(e, "P2025")) throw new AppError("NOT_FOUND", "Reaction not found");
+      if (isPrismaCode(e, 'P2025')) throw new AppError('NOT_FOUND', 'Reaction not found');
       throw e;
     }
   },
@@ -59,14 +59,14 @@ export const subscriptionService = {
 
   async subscribe(userId: number, channelId: number) {
     const channel = await prisma.channel.findUnique({ where: { id: channelId } });
-    if (!channel) throw new AppError("NOT_FOUND", "Channel not found");
-    if (channel.userId === userId) throw new AppError("BAD_REQUEST", "Cannot subscribe to your own channel");
+    if (!channel) throw new AppError('NOT_FOUND', 'Channel not found');
+    if (channel.userId === userId) throw new AppError('BAD_REQUEST', 'Cannot subscribe to your own channel');
     try {
       const created = await prisma.subscription.create({ data: { userId, channelId } });
-      return { status: "created" as const, subscription: created };
+      return { status: 'created' as const, subscription: created };
     } catch (e: unknown) {
-      if (isPrismaCode(e, "P2002")) {
-        return { status: "exists" as const, subscription: null };
+      if (isPrismaCode(e, 'P2002')) {
+        return { status: 'exists' as const, subscription: null };
       }
       throw e;
     }
@@ -78,8 +78,8 @@ export const subscriptionService = {
         where: { userId_channelId: { userId, channelId } },
       });
     } catch (e: unknown) {
-      if (isPrismaCode(e, "P2025")) {
-        throw new AppError("NOT_FOUND", "Subscription not found");
+      if (isPrismaCode(e, 'P2025')) {
+        throw new AppError('NOT_FOUND', 'Subscription not found');
       }
       throw e;
     }
@@ -102,7 +102,7 @@ export const subscriptionService = {
     const l = Math.min(Math.max(1, Math.floor(limit)), MAX_PAGE_SIZE);
     const videos = await prisma.video.findMany({
       where: { channel: { subscriptions: { some: { userId } } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       skip: (p - 1) * l,
       take: l,
       select: {
@@ -139,7 +139,7 @@ export const commentService = {
         image: created.user.image,
       };
     } catch (e: unknown) {
-      if (isPrismaCode(e, "P2003")) throw new AppError("NOT_FOUND", "Video or user not found");
+      if (isPrismaCode(e, 'P2003')) throw new AppError('NOT_FOUND', 'Video or user not found');
       throw e;
     }
   },
@@ -151,7 +151,7 @@ export const commentService = {
       prisma.video.findUnique({ where: { id: videoId }, select: { id: true } }),
       prisma.comment.findMany({
         where: { videoId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         skip: (p - 1) * l,
         take: l,
         select: {
@@ -163,7 +163,7 @@ export const commentService = {
         },
       }),
     ]);
-    if (!video) throw new AppError("NOT_FOUND", "Invalid video ID");
+    if (!video) throw new AppError('NOT_FOUND', 'Invalid video ID');
     return comments.map((c) => ({
       id: c.id,
       userId: c.userId,

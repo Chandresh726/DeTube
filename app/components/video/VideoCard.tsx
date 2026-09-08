@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { memo } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,7 +43,10 @@ const VideoCard = memo(function VideoCard({ video, showChannel }: VideoCardProps
             {showChannel && video.channel ? (
               <div className="mr-2 flex min-w-0 items-center">
                 <Avatar className="mr-2 size-8">
-                  <AvatarImage src={video.channel.image ?? undefined} alt={`${video.channel.name ?? 'Channel'} logo`} />
+                  <AvatarImage
+                    src={video.channel.image ?? undefined}
+                    alt={`${video.channel.name ?? 'Channel'} logo`}
+                  />
                   <AvatarFallback>{(video.channel.name ?? 'C').slice(0, 1)}</AvatarFallback>
                 </Avatar>
                 <p className="truncate text-sm font-semibold text-muted-foreground">{video.channel.name}</p>

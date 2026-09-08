@@ -1,6 +1,6 @@
-"use client";
+'use client';
 import { useState } from 'react';
-import { signIn } from "next-auth/react";
+import { signIn } from 'next-auth/react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -17,8 +17,7 @@ const SignupForm = () => {
   const [loadingFlag, setLoadingFlag] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const passwordsMismatch =
-    password !== '' && confirmPassword !== '' && password !== confirmPassword;
+  const passwordsMismatch = password !== '' && confirmPassword !== '' && password !== confirmPassword;
   const isFormValid =
     email !== '' && password !== '' && confirmPassword !== '' && name !== '' && !passwordsMismatch;
 
@@ -121,7 +120,7 @@ const SignupForm = () => {
                   Processing
                 </>
               ) : (
-                "Sign Up"
+                'Sign Up'
               )}
             </Button>
           </FieldGroup>

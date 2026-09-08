@@ -3,7 +3,14 @@ import type { LucideIcon } from 'lucide-react';
 import { Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty';
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from '@/components/ui/empty';
 
 type EmptyStateProps = {
   icon?: LucideIcon;
@@ -44,13 +51,7 @@ export function EmptyState({
   );
 }
 
-export function PageHeader({
-  title,
-  description,
-}: {
-  title: string;
-  description?: string;
-}) {
+export function PageHeader({ title, description }: { title: string; description?: string }) {
   return (
     <Card className="mb-4">
       <CardHeader>

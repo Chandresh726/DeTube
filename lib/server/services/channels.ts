@@ -1,7 +1,7 @@
-import prisma from "../db";
-import { AppError } from "../http";
-import { MAX_PAGE_SIZE } from "../env";
-import { formatViews, timeSince } from "../presenters";
+import prisma from '../db';
+import { AppError } from '../http';
+import { MAX_PAGE_SIZE } from '../env';
+import { formatViews, timeSince } from '../presenters';
 
 export const channelService = {
   async getById(channelId: number, page?: number, limit?: number) {
@@ -25,7 +25,7 @@ export const channelService = {
               views: true,
               createdAt: true,
             },
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
             skip: (p - 1) * l,
             take: l,
           },
@@ -33,7 +33,7 @@ export const channelService = {
       }),
       prisma.subscription.count({ where: { channelId } }),
     ]);
-    if (!channel) throw new AppError("NOT_FOUND", "Channel not found");
+    if (!channel) throw new AppError('NOT_FOUND', 'Channel not found');
     return {
       id: channel.id,
       name: channel.name,
@@ -55,7 +55,7 @@ export const channelService = {
   async register(ownerUserId: number, input: { channelName: string; description: string; logo: string }) {
     return prisma.$transaction(async (tx) => {
       const existing = await tx.channel.findUnique({ where: { userId: ownerUserId } });
-      if (existing) throw new AppError("CONFLICT", "User already has a channel");
+      if (existing) throw new AppError('CONFLICT', 'User already has a channel');
       const created = await tx.channel.create({
         data: {
           name: input.channelName,

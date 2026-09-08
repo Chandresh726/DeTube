@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { FaGithub, FaGoogle } from 'react-icons/fa';
@@ -25,7 +25,7 @@ const LogInForm = () => {
     });
 
     if (result?.error) {
-      setErrorMessage("Invalid Email/Password");
+      setErrorMessage('Invalid Email/Password');
     } else {
       setErrorMessage('');
     }
@@ -54,7 +54,10 @@ const LogInForm = () => {
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => { setEmail(e.target.value); setErrorMessage(""); }}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  setErrorMessage('');
+                }}
                 required
               />
             </Field>
@@ -65,7 +68,10 @@ const LogInForm = () => {
                 type="password"
                 autoComplete="current-password"
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrorMessage(""); }}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setErrorMessage('');
+                }}
                 required
               />
             </Field>
@@ -76,11 +82,13 @@ const LogInForm = () => {
                   Processing
                 </>
               ) : (
-                "Login"
+                'Login'
               )}
             </Button>
             {errorMessage && (
-              <p role="alert" aria-live="assertive" className="text-center text-sm text-destructive">{errorMessage}</p>
+              <p role="alert" aria-live="assertive" className="text-center text-sm text-destructive">
+                {errorMessage}
+              </p>
             )}
           </FieldGroup>
         </form>

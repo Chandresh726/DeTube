@@ -13,64 +13,64 @@ function required(name: string): string {
   return value;
 }
 
-function optional(name: string, fallback = ""): string {
+function optional(name: string, fallback = ''): string {
   return process.env[name] ?? fallback;
 }
 
 export const env = {
   get databaseUrl() {
-    return required("DATABASE_URL");
+    return required('DATABASE_URL');
   },
   get directUrl() {
-    return optional("DIRECT_URL", "");
+    return optional('DIRECT_URL', '');
   },
   get nextAuthSecret() {
-    return required("NEXTAUTH_SECRET");
+    return required('NEXTAUTH_SECRET');
   },
   get nextAuthUrl() {
-    return optional("NEXTAUTH_URL", "");
+    return optional('NEXTAUTH_URL', '');
   },
   get githubId() {
-    return optional("GITHUB_ID", "");
+    return optional('GITHUB_ID', '');
   },
   get githubSecret() {
-    return optional("GITHUB_SECRET", "");
+    return optional('GITHUB_SECRET', '');
   },
   get googleClientId() {
-    return optional("GOOGLE_CLIENT_ID", "");
+    return optional('GOOGLE_CLIENT_ID', '');
   },
   get googleClientSecret() {
-    return optional("GOOGLE_CLIENT_SECRET", "");
+    return optional('GOOGLE_CLIENT_SECRET', '');
   },
   get publicWalletKey() {
-    return optional("NEXT_PUBLIC_WALLET_PUBLIC_KEY", "");
+    return optional('NEXT_PUBLIC_WALLET_PUBLIC_KEY', '');
   },
   get solanaRpcUrl() {
-    return required("SOLANA_RPC_URL");
+    return required('SOLANA_RPC_URL');
   },
   get centralWalletPrivateKey() {
-    return required("WALLET_PRIVATE_KEY");
+    return required('WALLET_PRIVATE_KEY');
   },
   get r2AccountId() {
-    return required("R2_ACCOUNT_ID");
+    return required('R2_ACCOUNT_ID');
   },
   get r2AccessKeyId() {
-    return required("R2_ACCESS_KEY_ID");
+    return required('R2_ACCESS_KEY_ID');
   },
   get r2SecretAccessKey() {
-    return required("R2_SECRET_ACCESS_KEY");
+    return required('R2_SECRET_ACCESS_KEY');
   },
   get r2BucketName() {
-    return required("R2_BUCKET_NAME");
+    return required('R2_BUCKET_NAME');
   },
   get r2PublicUrl() {
-    return required("R2_PUBLIC_URL").replace(/\/+$/, "");
+    return required('R2_PUBLIC_URL').replace(/\/+$/, '');
   },
   get nodeEnv() {
-    return optional("NODE_ENV", "development");
+    return optional('NODE_ENV', 'development');
   },
   get isProduction() {
-    return optional("NODE_ENV") === "production";
+    return optional('NODE_ENV') === 'production';
   },
 };
 

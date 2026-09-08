@@ -2,10 +2,10 @@ import { createContext } from 'react';
 
 // Define the context shape
 export interface BalanceContextProps {
-    balance: number | null;
-    loading: boolean;
-    error: string | null;
-    refreshBalance: () => Promise<void>;
+  balance: number | null;
+  loading: boolean;
+  error: string | null;
+  refreshBalance: () => Promise<void>;
 }
 
 // Create a context with a default value of `undefined`

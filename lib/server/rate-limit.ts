@@ -1,5 +1,5 @@
-import { AppError } from "./http";
-import { RATE_LIMIT_WINDOW_MS } from "./env";
+import { AppError } from './http';
+import { RATE_LIMIT_WINDOW_MS } from './env';
 
 interface Bucket {
   count: number;
@@ -43,7 +43,7 @@ function hit(key: string, max: number, windowMs: number): void {
   }
   current.count += 1;
   if (current.count > max) {
-    throw new AppError("RATE_LIMITED", "Too many requests, please retry later");
+    throw new AppError('RATE_LIMITED', 'Too many requests, please retry later');
   }
 }
 
@@ -52,21 +52,31 @@ export function rateLimit(key: string, max: number, windowMs = RATE_LIMIT_WINDOW
   hit(key, max, windowMs);
 }
 
-export function rateLimitByUser(prefix: string, userId: number, max: number, windowMs = RATE_LIMIT_WINDOW_MS): void {
+export function rateLimitByUser(
+  prefix: string,
+  userId: number,
+  max: number,
+  windowMs = RATE_LIMIT_WINDOW_MS,
+): void {
   hit(`${prefix}:${userId}`, max, windowMs);
 }
 
-export function rateLimitByIp(prefix: string, ip: string | null, max: number, windowMs = RATE_LIMIT_WINDOW_MS): void {
-  hit(`${prefix}:${ip ?? "unknown"}`, max, windowMs);
+export function rateLimitByIp(
+  prefix: string,
+  ip: string | null,
+  max: number,
+  windowMs = RATE_LIMIT_WINDOW_MS,
+): void {
+  hit(`${prefix}:${ip ?? 'unknown'}`, max, windowMs);
 }
 
 export function getClientIp(req: Request): string | null {
   // NOTE: x-forwarded-for is spoofable. Only trust it when behind a configured
   // proxy (Vercel sets x-real-ip / x-forwarded-for). Prefer x-real-ip first.
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) return realIp.trim().split(",")[0]?.trim() ?? null;
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0]?.trim() ?? null;
+  const realIp = req.headers.get('x-real-ip');
+  if (realIp) return realIp.trim().split(',')[0]?.trim() ?? null;
+  const forwarded = req.headers.get('x-forwarded-for');
+  if (forwarded) return forwarded.split(',')[0]?.trim() ?? null;
   return null;
 }
 

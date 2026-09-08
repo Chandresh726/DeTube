@@ -1,7 +1,7 @@
-"use client";
-import { ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { BalanceContext, BalanceContextProps } from "./BalanceContext";
-import { getUserBalance } from "../util/fetch/wallet";
+'use client';
+import { ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { BalanceContext, BalanceContextProps } from './BalanceContext';
+import { getUserBalance } from '../util/fetch/wallet';
 
 // Custom hook to consume the balance context
 export const useBalance = (): BalanceContextProps => {
@@ -25,8 +25,8 @@ const useProvideBalance = (id: number | undefined): BalanceContextProps => {
       // API serializes BigInt as decimal strings; coerce once so all
       // consumers (sidebar, thanks slider, deposit/withdraw) see a number.
       const raw = response?.balance;
-      const parsed = typeof raw === "string" ? Number(raw) : (raw as number | null);
-      setBalance(typeof parsed === "number" && Number.isFinite(parsed) ? parsed : null);
+      const parsed = typeof raw === 'string' ? Number(raw) : (raw as number | null);
+      setBalance(typeof parsed === 'number' && Number.isFinite(parsed) ? parsed : null);
       setError(null);
     } catch (err) {
       setError('Failed to fetch balance');
@@ -73,9 +73,5 @@ export const BalanceProvider = ({ session, children }: BalanceProviderProps) => 
   const id = typeof rawId === 'string' ? Number(rawId) : rawId;
   const safeId = typeof id === 'number' && Number.isSafeInteger(id) ? id : undefined;
   const balance = useProvideBalance(safeId);
-  return (
-    <BalanceContext.Provider value={balance}>
-      {children}
-    </BalanceContext.Provider>
-  );
+  return <BalanceContext.Provider value={balance}>{children}</BalanceContext.Provider>;
 };

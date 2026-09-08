@@ -1,17 +1,17 @@
-import { NextResponse } from "next/server";
-import { Prisma } from "@/app/generated/prisma/client";
-import { ZodError } from "zod";
-import { logError, logWarn } from "./logger";
+import { NextResponse } from 'next/server';
+import { Prisma } from '@/app/generated/prisma/client';
+import { ZodError } from 'zod';
+import { logError, logWarn } from './logger';
 
 export type ErrorCode =
-  | "BAD_REQUEST"
-  | "UNAUTHORIZED"
-  | "FORBIDDEN"
-  | "NOT_FOUND"
-  | "CONFLICT"
-  | "UNPROCESSABLE"
-  | "RATE_LIMITED"
-  | "INTERNAL";
+  | 'BAD_REQUEST'
+  | 'UNAUTHORIZED'
+  | 'FORBIDDEN'
+  | 'NOT_FOUND'
+  | 'CONFLICT'
+  | 'UNPROCESSABLE'
+  | 'RATE_LIMITED'
+  | 'INTERNAL';
 
 const STATUS: Record<ErrorCode, number> = {
   BAD_REQUEST: 400,
@@ -67,32 +67,32 @@ export function isPrismaCode(e: unknown, code: string): boolean {
 export function handleRouteError(error: unknown, route: string): NextResponse {
   if (error instanceof AppError) {
     if (error.status >= 500) logError(route, error.message, { code: error.code });
-    else if (error.code === "FORBIDDEN" || error.code === "UNAUTHORIZED" || error.code === "CONFLICT") {
+    else if (error.code === 'FORBIDDEN' || error.code === 'UNAUTHORIZED' || error.code === 'CONFLICT') {
       logWarn(route, error.message, { code: error.code });
     }
     return fail(error.code, error.message, error.details);
   }
   if (error instanceof ZodError) {
-    return fail("BAD_REQUEST", "Invalid request", error.flatten());
+    return fail('BAD_REQUEST', 'Invalid request', error.flatten());
   }
   if (error instanceof SyntaxError) {
-    return fail("BAD_REQUEST", "Malformed JSON body");
+    return fail('BAD_REQUEST', 'Malformed JSON body');
   }
   if (isPrismaError(error)) {
     switch (error.code) {
-      case "P2002":
-        return fail("CONFLICT", "Resource already exists");
-      case "P2025":
-        return fail("NOT_FOUND", "Resource not found");
-      case "P2003":
-        return fail("NOT_FOUND", "Referenced resource not found");
+      case 'P2002':
+        return fail('CONFLICT', 'Resource already exists');
+      case 'P2025':
+        return fail('NOT_FOUND', 'Resource not found');
+      case 'P2003':
+        return fail('NOT_FOUND', 'Referenced resource not found');
       default:
         logError(route, `Prisma ${error.code}`, error.message);
-        return fail("INTERNAL", "Internal server error");
+        return fail('INTERNAL', 'Internal server error');
     }
   }
-  logError(route, error instanceof Error ? error.message : "Unknown error", error);
-  return fail("INTERNAL", "Internal server error");
+  logError(route, error instanceof Error ? error.message : 'Unknown error', error);
+  return fail('INTERNAL', 'Internal server error');
 }
 
 /** Wrap a route handler so thrown AppError/Zod/Prisma errors map to JSON consistently. */

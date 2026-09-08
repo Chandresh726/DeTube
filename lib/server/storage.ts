@@ -1,6 +1,6 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import { env, PRESIGNED_URL_EXPIRY_SECONDS } from "./env";
+import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { env, PRESIGNED_URL_EXPIRY_SECONDS } from './env';
 
 let client: S3Client | undefined;
 
@@ -12,7 +12,7 @@ export interface StorageGateway {
 export function getR2Client(): S3Client {
   if (!client) {
     client = new S3Client({
-      region: "auto",
+      region: 'auto',
       endpoint: `https://${env.r2AccountId}.r2.cloudflarestorage.com`,
       credentials: {
         accessKeyId: env.r2AccessKeyId,
@@ -30,7 +30,7 @@ export class R2StorageGateway implements StorageGateway {
       Key: fileName,
       ContentType: contentType,
       ...(contentLength !== undefined ? { ContentLength: contentLength } : {}),
-      CacheControl: "public, max-age=31536000, immutable",
+      CacheControl: 'public, max-age=31536000, immutable',
     });
     return getSignedUrl(getR2Client(), command, { expiresIn: PRESIGNED_URL_EXPIRY_SECONDS });
   }
@@ -57,19 +57,19 @@ export function buildObjectKey(fileType: string, ownerUserId: number, uuid: stri
 }
 
 export function isAllowedContentType(fileType: string, contentType: string): boolean {
-  const normalized = contentType.split(";")[0]?.trim().toLowerCase() ?? "";
-  if (!normalized.includes("/")) return false;
-  if (normalized === "image/svg+xml" || normalized.endsWith("+xml")) return false;
-  if (fileType === "temp-video") {
-    return normalized.startsWith("video/") && normalized !== "video/svg+xml";
+  const normalized = contentType.split(';')[0]?.trim().toLowerCase() ?? '';
+  if (!normalized.includes('/')) return false;
+  if (normalized === 'image/svg+xml' || normalized.endsWith('+xml')) return false;
+  if (fileType === 'temp-video') {
+    return normalized.startsWith('video/') && normalized !== 'video/svg+xml';
   }
-  return normalized.startsWith("image/");
+  return normalized.startsWith('image/');
 }
 
 export function isHttpsUrlFromPublicBucket(url: string): boolean {
   try {
     const u = new URL(url);
-    if (u.protocol !== "https:") return false;
+    if (u.protocol !== 'https:') return false;
     const pub = new URL(env.r2PublicUrl);
     return u.host === pub.host;
   } catch {

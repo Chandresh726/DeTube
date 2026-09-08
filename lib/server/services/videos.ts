@@ -1,11 +1,11 @@
-import prisma from "../db";
-import { AppError, isPrismaCode } from "../http";
-import { MAX_PAGE_SIZE, TOP_SUPPORTERS_LIMIT } from "../env";
-import { formatViews, timeSince, toVideoCard } from "../presenters";
+import prisma from '../db';
+import { AppError, isPrismaCode } from '../http';
+import { MAX_PAGE_SIZE, TOP_SUPPORTERS_LIMIT } from '../env';
+import { formatViews, timeSince, toVideoCard } from '../presenters';
 
 async function requireVideo(id: string) {
   const video = await prisma.video.findUnique({ where: { id } });
-  if (!video) throw new AppError("NOT_FOUND", "Video not found");
+  if (!video) throw new AppError('NOT_FOUND', 'Video not found');
   return video;
 }
 
@@ -16,7 +16,7 @@ export const videoService = {
       where: { id: videoId },
       select: { id: true, channelId: true },
     });
-    if (!existing) throw new AppError("NOT_FOUND", "Video not found");
+    if (!existing) throw new AppError('NOT_FOUND', 'Video not found');
 
     const [video, reactionGroups, subscriberCount] = await Promise.all([
       prisma.video.update({
@@ -25,7 +25,7 @@ export const videoService = {
         include: { channel: { select: { id: true, name: true, image: true } } },
       }),
       prisma.reaction.groupBy({
-        by: ["type"],
+        by: ['type'],
         where: { videoId },
         _count: { type: true },
       }),
@@ -35,16 +35,16 @@ export const videoService = {
     let likeCount = 0;
     let dislikeCount = 0;
     for (const g of reactionGroups) {
-      if (g.type === "LIKE") likeCount = g._count.type;
-      else if (g.type === "DISLIKE") dislikeCount = g._count.type;
+      if (g.type === 'LIKE') likeCount = g._count.type;
+      else if (g.type === 'DISLIKE') dislikeCount = g._count.type;
     }
 
     // Aggregate top supporters in SQL instead of in-memory reduce+sort.
     const grouped = await prisma.transaction.groupBy({
-      by: ["userId"],
-      where: { channelId: video.channelId, type: "THANKS", status: "SUCCESS" },
+      by: ['userId'],
+      where: { channelId: video.channelId, type: 'THANKS', status: 'SUCCESS' },
       _sum: { amount: true },
-      orderBy: { _sum: { amount: "desc" } },
+      orderBy: { _sum: { amount: 'desc' } },
       take: TOP_SUPPORTERS_LIMIT,
     });
     const users =
@@ -87,7 +87,7 @@ export const videoService = {
       prisma.video.findMany({
         skip: offset,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         select: {
           id: true,
           title: true,
@@ -117,9 +117,9 @@ export const videoService = {
     ownerUserId: number;
   }) {
     const channel = await prisma.channel.findUnique({ where: { id: input.channelId } });
-    if (!channel) throw new AppError("NOT_FOUND", "Channel not found");
+    if (!channel) throw new AppError('NOT_FOUND', 'Channel not found');
     if (channel.userId !== input.ownerUserId) {
-      throw new AppError("FORBIDDEN", "Cannot upload to a channel you do not own");
+      throw new AppError('FORBIDDEN', 'Cannot upload to a channel you do not own');
     }
     try {
       const created = await prisma.video.create({
@@ -135,7 +135,7 @@ export const videoService = {
       return created;
     } catch (e) {
       // Let handleRouteError map P2002 (duplicate id) -> 409, P2003 -> 404.
-      if (isPrismaCode(e, "P2002")) throw new AppError("CONFLICT", "Video already exists");
+      if (isPrismaCode(e, 'P2002')) throw new AppError('CONFLICT', 'Video already exists');
       throw e;
     }
   },
@@ -144,8 +144,8 @@ export const videoService = {
     const p = Math.max(1, Math.floor(page ?? 1));
     const l = Math.min(Math.max(1, Math.floor(limit ?? 20)), MAX_PAGE_SIZE);
     const liked = await prisma.reaction.findMany({
-      where: { userId, type: "LIKE" },
-      orderBy: { createdAt: "desc" },
+      where: { userId, type: 'LIKE' },
+      orderBy: { createdAt: 'desc' },
       skip: (p - 1) * l,
       take: l,
       select: {

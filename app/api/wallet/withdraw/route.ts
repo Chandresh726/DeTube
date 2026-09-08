@@ -13,7 +13,10 @@ export async function POST(req: NextRequest) {
     const body = withdrawSchema.parse(await req.json());
     const userId = assertOwnership(sessionUserId, body.userId);
     const idempotencyKey =
-      body.idempotencyKey ?? req.headers.get('idempotency-key') ?? req.headers.get('Idempotency-Key') ?? undefined;
+      body.idempotencyKey ??
+      req.headers.get('idempotency-key') ??
+      req.headers.get('Idempotency-Key') ??
+      undefined;
     const { signature } = await walletService.withdraw(userId, {
       walletAddress: body.walletAddress,
       amount: body.amount,

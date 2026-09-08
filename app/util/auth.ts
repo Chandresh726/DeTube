@@ -1,10 +1,10 @@
-import GithubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
-import { NextAuthOptions } from "next-auth";
-import prisma from "@/lib/server/db";
-import { env, BCRYPT_ROUNDS } from "@/lib/server/env";
+import GithubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import bcrypt from 'bcryptjs';
+import { NextAuthOptions } from 'next-auth';
+import prisma from '@/lib/server/db';
+import { env, BCRYPT_ROUNDS } from '@/lib/server/env';
 
 export const authOptions: NextAuthOptions = {
   secret: env.nextAuthSecret,
@@ -26,10 +26,10 @@ export const authOptions: NextAuthOptions = {
         ]
       : []),
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
@@ -56,7 +56,7 @@ export const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      if (account?.provider === "github" || account?.provider === "google") {
+      if (account?.provider === 'github' || account?.provider === 'google') {
         if (!user?.email) return false;
         const email = user.email.trim().toLowerCase();
         // Only fill null profile fields; never overwrite user-set values.
@@ -88,13 +88,13 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = (token.id as string | undefined) ?? "";
+        session.user.id = (token.id as string | undefined) ?? '';
         session.user.channelId = (token.channelId as number | null | undefined) ?? null;
       }
       return session;
     },
     async jwt({ token, user, trigger, session }) {
-      if (trigger === "update" && session) {
+      if (trigger === 'update' && session) {
         token.channelId = (session as { channelId?: number | null }).channelId ?? null;
       }
       if (user?.email) {
@@ -111,13 +111,13 @@ export const authOptions: NextAuthOptions = {
     },
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 7 * 24 * 60 * 60,
   },
   jwt: {
     maxAge: 7 * 24 * 60 * 60,
   },
   pages: {
-    signIn: "/logIn",
+    signIn: '/logIn',
   },
 };
