@@ -22,12 +22,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', 'react-icons', 'radix-ui'],
   },
-  // Backend-only hardening phase: backend strictness is enforced via
-  // `tsc -p tsconfig.backend.json`. Frontend type debt is being fixed
-  // incrementally; keep deploys unblocked until `tsc --noEmit` is clean.
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-}
+};
 
 export default nextConfig;

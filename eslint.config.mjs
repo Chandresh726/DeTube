@@ -1,20 +1,14 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
+import { defineConfig, globalIgnores } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
 
 export default defineConfig([
   ...nextVitals,
   {
     rules: {
-      "@next/next/no-html-link-for-pages": "warn",
-      "react-hooks/immutability": "warn",
-      "react-hooks/set-state-in-effect": "warn",
+      '@next/next/no-html-link-for-pages': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/set-state-in-effect': 'warn',
     },
   },
-  globalIgnores([
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-    "app/generated/prisma/**",
-  ]),
+  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts', 'app/generated/prisma/**']),
 ]);

@@ -1,7 +1,7 @@
-"use client";
+'use client';
 import { useState } from 'react';
-import { MdUpload } from "react-icons/md";
-import { useRouter } from 'next/navigation'
+import { MdUpload } from 'react-icons/md';
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { toast } from 'sonner';
 import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/r2';
@@ -15,8 +15,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-const CreateChannelForm = ({ userId }: { userId: number }) => {
-  const { data: session, update } = useSession()
+const CreateChannelForm = ({ userId }: { userId: number | string }) => {
+  const { data: session, update } = useSession();
 
   const [channelName, setChannelName] = useState('');
   const [description, setDescription] = useState('');
@@ -24,7 +24,7 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [loadingFlag, setLoadingFlag] = useState(false);
 
-  const router = useRouter()
+  const router = useRouter();
   const [logoId] = useState(() => crypto.randomUUID());
 
   const isFormValid = channelName !== '' && description !== '' && logo !== null && !uploadingLogo;
@@ -34,19 +34,19 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
     const file = event.target.files?.[0];
     if (!file) return;
     try {
-      setUploadingLogo(true)
+      setUploadingLogo(true);
       const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoId, file.type, file.size);
-      const uploadResponse = await hitPresignedurl(presignedUrl, file)
+      const uploadResponse = await hitPresignedurl(presignedUrl, file);
 
       if (uploadResponse.ok) {
-        setLogo(url)
+        setLogo(url);
       } else {
         toast.error('Logo upload failed');
       }
     } catch (error) {
       toast.error('Logo upload failed');
     } finally {
-      setUploadingLogo(false)
+      setUploadingLogo(false);
     }
   };
 
@@ -56,19 +56,19 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
       toast.error('Channel logo is required');
       return;
     }
-    setLoadingFlag(true)
+    setLoadingFlag(true);
     try {
       const response = await createChannel(userId, channelName, description, logo);
       if (response && response.channelId) {
         await update({ channelId: response.channelId });
-        router.push('/channel/' + response.channelId)
+        router.push('/channel/' + response.channelId);
       } else {
         toast.error('Failed to create channel');
       }
     } catch (error) {
       toast.error('Failed to create channel');
     } finally {
-      setLoadingFlag(false)
+      setLoadingFlag(false);
     }
   };
 
@@ -95,7 +95,10 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
                   ) : (
                     <div className="h-full w-full bg-muted" />
                   )}
-                  <label htmlFor="channel-logo" className="absolute inset-0 flex cursor-pointer items-center justify-center bg-background/60 text-sm font-medium opacity-100 transition-opacity hover:bg-background/80">
+                  <label
+                    htmlFor="channel-logo"
+                    className="absolute inset-0 flex cursor-pointer items-center justify-center bg-background/60 text-sm font-medium opacity-100 transition-opacity hover:bg-background/80"
+                  >
                     <Input
                       id="channel-logo"
                       type="file"
@@ -104,13 +107,16 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
                       disabled={uploadingLogo}
                       className="absolute inset-0 cursor-pointer opacity-0"
                     />
-                    {uploadingLogo ? 'Uploading...'
-                      : (logo ? 'Change Logo'
-                        : (<span className="flex items-center gap-1">
-                          Upload
-                          <MdUpload aria-hidden />
-                        </span>))
-                    }
+                    {uploadingLogo ? (
+                      'Uploading...'
+                    ) : logo ? (
+                      'Change Logo'
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        Upload
+                        <MdUpload aria-hidden />
+                      </span>
+                    )}
                   </label>
                 </div>
               </Field>
@@ -144,7 +150,7 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
                   Processing
                 </>
               ) : (
-                "Create Channel"
+                'Create Channel'
               )}
             </Button>
           </FieldGroup>
