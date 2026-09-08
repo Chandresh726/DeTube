@@ -1,20 +1,22 @@
 "use client";
 import { useSession } from 'next-auth/react';
 import React, { useId, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useRouter } from 'next/navigation';
 import { CiHeart } from "react-icons/ci";
-import { LAMPORTS_PER_SOL } from '@solana/web3.js';
 import { toast } from 'sonner';
 import { sendThanks } from '../../util/fetch/channel';
 import { useBalance } from '../../hooks/useBalance';
-import { Player } from '@lottiefiles/react-lottie-player';
-import successAnimation from '../../../public/successAnimation.json';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDTSolPrecise } from '@/lib/utils';
+
+const LAMPORTS_PER_SOL = 1_000_000_000;
+
+const Player = dynamic(() => import('@lottiefiles/react-lottie-player').then((m) => m.Player), { ssr: false });
 
 const ThanksButton = ({ channelId, channelName }: { channelId: number; channelName: string }) => {
     const { data: session } = useSession();
@@ -70,14 +72,13 @@ const ThanksButton = ({ channelId, channelName }: { channelId: number; channelNa
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <Button onClick={openModal} className="mt-4 w-full rounded-full" aria-label={`Send thanks to ${channelName}`}>
-                Thanks
-                <CiHeart aria-hidden data-icon="inline-end" />
-            </Button>
-            <DialogTrigger className="hidden" aria-hidden tabIndex={-1} asChild>
-                <span />
+            <DialogTrigger asChild>
+                <Button onClick={openModal} className="mt-4 w-full rounded-full" aria-label={`Send thanks to ${channelName}`}>
+                    Thanks
+                    <CiHeart aria-hidden data-icon="inline-end" />
+                </Button>
             </DialogTrigger>
-            <DialogContent aria-describedby={undefined}>
+            <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Thanks: {channelName}</DialogTitle>
                     <DialogDescription>Support this channel with DTSol</DialogDescription>
@@ -90,7 +91,7 @@ const ThanksButton = ({ channelId, channelName }: { channelId: number; channelNa
                             autoplay
                             loop={false}
                             keepLastFrame
-                            src={successAnimation}
+                            src="/successAnimation.json"
                             style={{ height: '200px', width: '200px', margin: '0 auto' }}
                         />
                         <Button variant="secondary" onClick={() => { setSuccess(false) }}>Send Again</Button>

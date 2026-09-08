@@ -7,7 +7,7 @@ export const revalidate = 3600;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://detube.slope726.in'
 
-    // Static routes
+    // Static routes (public only; auth-required routes excluded for SEO)
     const staticRoutes = [
         {
             url: baseUrl,
@@ -15,42 +15,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'daily' as const,
             priority: 1,
         },
-        {
-            url: `${baseUrl}/uploadVideo`,
-            lastModified: new Date(),
-            changeFrequency: 'weekly' as const,
-            priority: 0.8,
-        },
-        {
-            url: `${baseUrl}/subscription`,
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/statement`,
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/liked`,
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/deposit`,
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.7,
-        },
-        {
-            url: `${baseUrl}/withdraw`,
-            lastModified: new Date(),
-            changeFrequency: 'daily' as const,
-            priority: 0.7,
-        }
     ]
 
     // Get video data

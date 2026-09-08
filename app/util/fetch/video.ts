@@ -1,4 +1,4 @@
-export const createVideo = async (channelId: number, videoId: string, title: string, description: string, thumbnail: any, video: any) => {
+export const createVideo = async (channelId: number, videoId: string, title: string, description: string, thumbnail: string, video: string) => {
     const response = await fetch('/api/video/add', {
         method: 'POST',
         headers: {
@@ -18,16 +18,10 @@ export const getVideoData = async (id: string) => {
 };
 
 export const getHomeVideoData = async (page: number, limit: number) => {
-    try {
-        const response = await fetch(`/api/video/home?page=${page}&limit=${limit}`);
-        if (!response.ok) {
-            console.error('Failed to fetch video data:', response.statusText);
-            throw new Error('Failed to fetch video data');
-        }
-        const data = await response.json();
-        return data;
-    } catch (error) {
-        console.error('Error fetching video data:', error);
-        return { videos: [], totalPages: 0 }; // Return a fallback value
+    const response = await fetch(`/api/video/home?page=${page}&limit=${limit}`);
+    if (!response.ok) {
+        throw new Error('Failed to fetch video data');
     }
+    const data = await response.json();
+    return data;
 };

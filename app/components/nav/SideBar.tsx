@@ -26,8 +26,6 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
                 'fixed left-0 top-16 z-10 flex h-[calc(100vh-4rem)] flex-col overflow-hidden border-r bg-background transition-all duration-200 ease-in-out',
                 sidebarWidth,
             )}
-            aria-hidden={sidebarState === 'closed'}
-            inert={sidebarState === 'closed' ? true : undefined}
         >
             <div
                 className={cn(
@@ -83,7 +81,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
 
 const SidebarItem = ({ icon, text, link, sidebarState }: { icon: React.ReactNode; text: string; link: string; sidebarState: string }) => (
     <Button asChild variant="ghost" className={cn('w-full justify-start', sidebarState === 'icons' && 'justify-center px-2')}>
-        <Link href={link} className="flex items-center">
+        <Link href={link} className="flex items-center" aria-label={text} title={text}>
             {icon}
             {sidebarState === 'full' && <span className="ml-2 truncate">{text}</span>}
         </Link>

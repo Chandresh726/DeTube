@@ -1,6 +1,7 @@
 "use client";
 import React, { memo } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -25,12 +26,13 @@ const VideoCard = memo(function VideoCard({ video, showChannel }: VideoCardProps
     >
       <Card className="w-full overflow-hidden py-0 transition-shadow duration-200 group-hover:shadow-lg">
         <div className="relative aspect-video overflow-hidden bg-muted">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
+          <Image
             src={video.thumbnailUrl}
             alt={video.title}
+            fill
+            sizes="(max-width:768px)100vw,(max-width:1200px)50vw,33vw"
             loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
         </div>
         <CardContent className="flex flex-col gap-2 p-4">

@@ -1,6 +1,13 @@
 import { z } from "zod";
 import bs58 from "bs58";
-import { DEFAULT_PAGE_SIZE, FEED_DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE } from "./env";
+import {
+  DEFAULT_PAGE_SIZE,
+  FEED_DEFAULT_PAGE_SIZE,
+  MAX_CHANNEL_LOGO_BYTES,
+  MAX_PAGE_SIZE,
+  MAX_THUMBNAIL_BYTES,
+  MAX_VIDEO_BYTES,
+} from "./env";
 
 const idParam = z.coerce.number().int().positive();
 
@@ -144,10 +151,25 @@ export const withdrawSchema = z.object({
 
 const contentTypeString = z.string().trim().min(3).max(128);
 
+export const MAX_UPLOAD_BYTES_BY_FILE_TYPE: Record<string, number> = {
+  thumbnail: MAX_THUMBNAIL_BYTES,
+  "channel-logo": MAX_CHANNEL_LOGO_BYTES,
+  "temp-video": MAX_VIDEO_BYTES,
+};
+
 export const presignedUrlSchema = z.object({
   fileType: z.enum(["thumbnail", "temp-video", "channel-logo"]),
   id: z.string().trim().uuid(),
   contentType: contentTypeString,
+  contentLength: z.coerce.number().int().positive().optional(),
+}).superRefine((v, ctx) => {
+  const cap = MAX_UPLOAD_BYTES_BY_FILE_TYPE[v.fileType];
+  if (v.contentLength !== undefined && cap !== undefined && v.contentLength > cap) {
+    ctx.addIssue({
+      code: "custom",
+      message: `contentLength exceeds ${cap} bytes for ${v.fileType}`,
+    });
+  }
 });
 
 export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {

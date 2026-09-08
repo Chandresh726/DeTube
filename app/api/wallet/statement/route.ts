@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSession, assertQueryOwnership } from '@/lib/server/auth';
 import { handleRouteError } from '@/lib/server/http';
+import { paginationSchema } from '@/lib/server/validation';
 import { walletService } from '@/lib/server/services/wallet';
 
 export async function GET(req: NextRequest) {
@@ -11,16 +12,15 @@ export async function GET(req: NextRequest) {
     const typeParam = params.get('type');
     const type =
       typeParam === 'DEPOSIT' || typeParam === 'WITHDRAWAL' || typeParam === 'THANKS' ? typeParam : undefined;
-    const pageParam = params.get('page');
-    const limitParam = params.get('limit');
+    // Always paginate + cap via shared schema (DoS guard: was raw Number(), unbounded).
+    const { page, limit } = paginationSchema.parse({
+      page: params.get('page') ?? undefined,
+      limit: params.get('limit') ?? undefined,
+    });
     const grouped = await walletService.getStatement(sessionUserId, {
       ...(type ? { type } : {}),
-      ...(pageParam !== null || limitParam !== null
-        ? {
-            page: pageParam ? Number(pageParam) : 1,
-            limit: limitParam ? Number(limitParam) : 200,
-          }
-        : {}),
+      page,
+      limit,
     });
     return NextResponse.json(grouped);
   } catch (error) {

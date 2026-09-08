@@ -1,15 +1,12 @@
 "use client";
 import React, { useState, useEffect, useId } from 'react';
+import dynamic from 'next/dynamic';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import * as web3 from "@solana/web3.js";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { toast } from 'sonner';
 import ConnectWallet from './ConnectWallet';
 import { depositRequest } from '../../util/fetch/wallet';
 import { useBalance } from '../../hooks/useBalance';
-import { Player } from '@lottiefiles/react-lottie-player';
-import successAnimation from '../../../public/successAnimation.json';
-import failureAnimation from '../../../public/failureAnimation.json';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -18,6 +15,10 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+
+const LAMPORTS_PER_SOL = 1_000_000_000;
+
+const Player = dynamic(() => import('@lottiefiles/react-lottie-player').then((m) => m.Player), { ssr: false });
 
 const Deposit = ({ session }: { session: { user: { id: number } } }) => {
     const { publicKey, connected, sendTransaction } = useWallet();
@@ -182,7 +183,7 @@ const Deposit = ({ session }: { session: { user: { id: number } } }) => {
                             autoplay
                             loop={false}
                             keepLastFrame
-                            src={modalType === 'success' ? successAnimation : failureAnimation}
+                            src={modalType === 'success' ? '/successAnimation.json' : '/failureAnimation.json'}
                             style={{ height: '200px', width: '200px', margin: '0 auto' }}
                         />
                         <DialogClose asChild>

@@ -1,12 +1,12 @@
 import prisma from "../db";
 import { AppError } from "../http";
+import { MAX_PAGE_SIZE } from "../env";
 import { formatViews, timeSince } from "../presenters";
 
 export const channelService = {
   async getById(channelId: number, page?: number, limit?: number) {
-    const paginated = page !== undefined || limit !== undefined;
-    const p = page ?? 1;
-    const l = limit ?? 20;
+    const p = Math.max(1, Math.floor(page ?? 1));
+    const l = Math.min(Math.max(1, Math.floor(limit ?? 20)), MAX_PAGE_SIZE);
     const [channel, subscriberCount] = await Promise.all([
       prisma.channel.findUnique({
         where: { id: channelId },
@@ -26,7 +26,8 @@ export const channelService = {
               createdAt: true,
             },
             orderBy: { createdAt: "desc" },
-            ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
+            skip: (p - 1) * l,
+            take: l,
           },
         },
       }),

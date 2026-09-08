@@ -62,14 +62,18 @@ export const depositRequest = async (address: string, amount: number, signature:
     return await response.json();
 }
 
-export const withdrawRequest = async (walletAddress: string, amount: number, userId: number) => {
+export const withdrawRequest = async (walletAddress: string, amount: number, userId: number, idempotencyKey?: string) => {
     const response = await fetch('/api/wallet/withdraw', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+            'Content-Type': 'application/json',
+            ...(idempotencyKey ? { 'idempotency-key': idempotencyKey } : {}),
+        },
         body: JSON.stringify({
             userId,
             walletAddress,
-            amount
+            amount,
+            ...(idempotencyKey ? { idempotencyKey } : {}),
         }),
     });
     if (!response.ok) {

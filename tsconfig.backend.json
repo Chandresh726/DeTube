@@ -11,7 +11,6 @@
     "lib/server/**/*.ts",
     "app/api/**/*.ts",
     "app/util/auth.ts",
-    "app/api/util/prisma.ts",
     "app/sitemap.ts",
     "prisma/**/*.ts",
     "types/**/*.ts",

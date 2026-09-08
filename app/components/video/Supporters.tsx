@@ -3,8 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatDTSol } from '@/lib/utils';
-
-const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 const Supporters = ({ supporters }: { supporters: Array<{ id: number | string; name: string; image?: string | null; amount: number | string }> }) => {
     return (

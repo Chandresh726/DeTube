@@ -135,7 +135,8 @@
   }
 }
 
-/* Custom scrollbar using Tailwind's @apply */
+/* Scrollbars: prefer tailwind-scrollbar plugin (`scrollbar-thin`). Legacy hand
+   CSS below kept for `.custom-scrollbar` consumers; do not add new variants. */
 .custom-scrollbar {
   @apply overflow-y-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-500 scrollbar-track-gray-300;
 }

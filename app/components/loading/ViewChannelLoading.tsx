@@ -28,7 +28,7 @@ const ViewChannelLoading = () => {
         <Skeleton className="my-2 h-4 w-full" />
       </div>
       <Separator className="my-1" />
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <VideoCardLoading />
         <VideoCardLoading />
         <VideoCardLoading />

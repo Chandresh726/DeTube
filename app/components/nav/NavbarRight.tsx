@@ -7,8 +7,7 @@ import ThemeToggle from '../button/ThemeBtn';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuGroup, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-
-const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 const NavbarRight = ({ session }: { session: { user?: { name?: string | null; image?: string | null; channelId?: number | null } } | null }) => {
     if (session) {

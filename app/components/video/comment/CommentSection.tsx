@@ -4,12 +4,14 @@ import AddComment from './AddComment';
 import { getComments } from '../../../util/fetch/comment';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
-const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+type Comment = { id: number; image?: string | null; name: string; timeSince: string; content: string };
 
 const CommentSection = ({ videoId }: { videoId: string }) => {
-    const [comments, setComments] = useState<Array<{ image?: string | null; name: string; timeSince: string; content: string }> | null>(null);
+    const [comments, setComments] = useState<Comment[] | null>(null);
     const [flag, setFlag] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const triggerUpdate = () => {
         setFlag((f) => !f)
@@ -19,10 +21,15 @@ const CommentSection = ({ videoId }: { videoId: string }) => {
         let cancelled = false;
         const controller = new AbortController();
         const updateComments = async () => {
-            const data = await getComments(videoId);
-            if (cancelled) return;
-            if (data) {
-                setComments(data.comments);
+            try {
+                setError(null);
+                const data = await getComments(videoId);
+                if (cancelled) return;
+                if (data) {
+                    setComments(data.comments);
+                }
+            } catch {
+                if (!cancelled) setError('Failed to load comments');
             }
         }
         updateComments()
@@ -36,6 +43,9 @@ const CommentSection = ({ videoId }: { videoId: string }) => {
         <div>
             <h3 className="text-2xl font-bold">Comments</h3>
             <AddComment videoId={videoId} triggerUpdate={triggerUpdate} />
+            {error ? (
+                <p className="mt-2 text-sm text-destructive">{error} <button className="underline" onClick={() => setFlag((f) => !f)}>Retry</button></p>
+            ) : null}
             <div>
                 {!comments ? (
                     <div className="flex flex-col gap-3" aria-busy="true" aria-label="Loading comments">
@@ -45,8 +55,8 @@ const CommentSection = ({ videoId }: { videoId: string }) => {
                 ) : comments.length === 0 ? (
                     <p className="mt-2 text-sm text-muted-foreground">No comments yet. Be the first to comment.</p>
                 ) : (
-                    comments.map((comment, index) => (
-                        <div key={`${comment.name}-${index}`} className="my-4 flex items-start">
+                    comments.map((comment) => (
+                        <div key={comment.id} className="my-4 flex items-start">
                             <Avatar className="mr-4 size-10">
                                 <AvatarImage src={comment.image || DEFAULT_AVATAR} alt={comment.name} />
                                 <AvatarFallback>{comment.name.slice(0, 1)}</AvatarFallback>

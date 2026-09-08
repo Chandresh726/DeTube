@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useState } from 'react';
+import type { Session } from 'next-auth';
 import Navbar from '../nav/Navbar';
 import SideBar from '../nav/SideBar';
 import { usePathname } from 'next/navigation';
 import { getSubscriptionsData } from '../../util/fetch/subscription';
 
 interface NavBarWrapperProps {
-    session: { user?: { id: number } } | null;
+    session: Session | null;
     children: React.ReactNode;
 }
 
@@ -23,8 +24,10 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
     const pathname = usePathname();
 
     useEffect(() => {
-        if (session?.user?.id) {
-            fetchSubscriptions(session.user.id);
+        const rawId = session?.user?.id;
+        const numericId = typeof rawId === 'string' ? Number(rawId) : rawId;
+        if (typeof numericId === 'number' && Number.isSafeInteger(numericId)) {
+            fetchSubscriptions(numericId);
         } else {
             setSubscriptions([]);
         }
@@ -75,7 +78,7 @@ const NavBarWrapper: React.FC<NavBarWrapperProps> = ({ session, children }) => {
 
     return (
         <div>
-            <Navbar session={session} onToggleSidebar={handleToggleSidebar} />
+            <Navbar session={session} onToggleSidebar={handleToggleSidebar} sidebarOpen={effectiveState === 'full'} />
             <div className="flex pt-16">
                 <SideBar session={session} sidebarState={effectiveState} subscriptions={subscriptions} />
                 {!isAuthPage && mobileOpen ? (

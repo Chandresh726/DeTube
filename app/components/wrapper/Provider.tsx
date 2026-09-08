@@ -1,8 +1,8 @@
  "use client";
 import React from 'react'
 import dynamic from 'next/dynamic';
+import { ThemeProvider } from 'next-themes';
 import SessionWrapper from './SessionWrapper';
-import { ThemeProvider } from './ThemeContext';
 
 const AppWalletProvider = dynamic(() => import('./AppWalletProvider'), { ssr: false });
 
@@ -14,7 +14,7 @@ const Provider = ({
     return (
         <SessionWrapper>
             <AppWalletProvider>
-                <ThemeProvider>
+                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
                     {children}
                 </ThemeProvider>
             </AppWalletProvider>

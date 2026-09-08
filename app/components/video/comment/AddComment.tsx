@@ -7,8 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Field, FieldLabel } from '@/components/ui/field';
 import { Textarea } from '@/components/ui/textarea';
-
-const DEFAULT_AVATAR = "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg";
+import { DEFAULT_AVATAR } from '@/lib/constants';
 
 const AddComment = ({ videoId, triggerUpdate }: { videoId: string; triggerUpdate: () => void }) => {
     const { data: session } = useSession();

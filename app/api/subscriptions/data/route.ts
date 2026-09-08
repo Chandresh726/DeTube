@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireSession, assertQueryOwnership } from '@/lib/server/auth';
 import { handleRouteError } from '@/lib/server/http';
+import { paginationSchema } from '@/lib/server/validation';
 import { subscriptionService } from '@/lib/server/services/social';
 
 export async function GET(req: NextRequest) {
@@ -8,13 +9,11 @@ export async function GET(req: NextRequest) {
     const { userId: sessionUserId } = await requireSession();
     const params = new URL(req.url).searchParams;
     assertQueryOwnership(sessionUserId, params.get('id'), 'subscriptions');
-    const pageParam = params.get('page');
-    const limitParam = params.get('limit');
-    const subscriptions = await subscriptionService.listForUser(
-      sessionUserId,
-      pageParam !== null ? Number(pageParam) : undefined,
-      limitParam !== null ? Number(limitParam) : undefined,
-    );
+    const { page, limit } = paginationSchema.parse({
+      page: params.get('page') ?? undefined,
+      limit: params.get('limit') ?? undefined,
+    });
+    const subscriptions = await subscriptionService.listForUser(sessionUserId, page, limit);
     return NextResponse.json({ subscriptions });
   } catch (error) {
     return handleRouteError(error, 'GET /api/subscriptions/data');

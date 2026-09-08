@@ -47,7 +47,7 @@ const ViewChannel = ({ channelData }: { channelData: {
             {channelData?.videos.length === 0 ? (
               <EmptyState icon={Clapperboard} title="No videos yet" description="This channel hasn't uploaded anything." />
             ) : (
-              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {channelData?.videos.map(video => (
                       <VideoCard key={video.id} video={video as never} showChannel={false} />
                   ))}

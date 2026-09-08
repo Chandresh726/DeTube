@@ -5,7 +5,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "./util/auth";
 import { BalanceProvider } from "./hooks/useBalance";
 import Provider from "./components/wrapper/Provider";
-import DynamicNavBarWrapper from "./components/wrapper/DynamicNavBarWrapper";
+import NavBarWrapper from "./components/wrapper/NavBarWrapper";
 import { Analytics } from "@vercel/analytics/react";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Toaster } from "sonner";
@@ -40,11 +40,11 @@ export default async function RootLayout({
         <TooltipProvider>
         <Provider>
           <BalanceProvider session={session}>
-            <DynamicNavBarWrapper session={session}>
+            <NavBarWrapper session={session}>
               {children}
               <SpeedInsights />
               <Analytics />
-            </DynamicNavBarWrapper>
+            </NavBarWrapper>
           </BalanceProvider>
         </Provider>
         </TooltipProvider>

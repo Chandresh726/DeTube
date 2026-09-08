@@ -1,3 +1,4 @@
+import type { Session } from 'next-auth';
 import React from 'react'
 import Link from 'next/link';
 import Image from 'next/image';
@@ -6,15 +7,16 @@ import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
 interface NavbarProps {
-    session: unknown;
+    session: Session | null;
     onToggleSidebar: () => void;
+    sidebarOpen?: boolean;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ session, onToggleSidebar }) => {
+const Navbar: React.FC<NavbarProps> = ({ session, onToggleSidebar, sidebarOpen }) => {
     return (
         <header className="fixed inset-x-0 top-0 z-10 flex h-16 items-center justify-between border-b bg-background px-2 md:px-4">
             <div className="flex items-center gap-1">
-                <Button onClick={onToggleSidebar} variant="ghost" size="icon" aria-label="Toggle sidebar" aria-expanded={undefined}>
+                <Button onClick={onToggleSidebar} variant="ghost" size="icon" aria-label="Toggle sidebar" aria-expanded={sidebarOpen ?? false}>
                     <Menu />
                 </Button>
                 <Button asChild variant="ghost" className="px-2 text-base md:px-4 md:text-xl">
@@ -24,7 +26,7 @@ const Navbar: React.FC<NavbarProps> = ({ session, onToggleSidebar }) => {
                     </Link>
                 </Button>
             </div>
-            <NavbarRight session={session as never} />
+            <NavbarRight session={session} />
         </header>
     )
 }

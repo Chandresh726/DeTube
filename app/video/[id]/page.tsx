@@ -13,15 +13,32 @@ interface PageProps {
 const VideoPage = ({ params }: PageProps) => {
     const { id: videoId } = use(params);
     const [videoData, setVideoData] = useState(null)
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
         const prepareData = async () => {
-            const data = await getVideoData(videoId);
-            setVideoData(data)
+            try {
+                setError(null);
+                const data = await getVideoData(videoId);
+                if (!cancelled) setVideoData(data)
+            } catch {
+                if (!cancelled) setError('Failed to load video');
+            }
         }
         prepareData()
+        return () => { cancelled = true; };
     }, [videoId])
 
+    if (error) {
+        return (
+            <div className="mx-auto max-w-xl py-16 text-center">
+                <p className="text-lg font-semibold">Couldn&apos;t load video</p>
+                <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+                <button className="mt-4 underline" onClick={() => window.location.reload()}>Retry</button>
+            </div>
+        );
+    }
     if (!videoData) {
         return <ViewVideoLoading />
     }

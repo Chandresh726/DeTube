@@ -4,13 +4,14 @@ export const getPresignedUrl = async (
     fileType: MediaFileType,
     id: string | null,
     contentType: string,
+    contentLength?: number,
 ) => {
     const urlResponse = await fetch('/api/getPresignedUrl', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ id, fileType, contentType }),
+        body: JSON.stringify({ id, fileType, contentType, ...(contentLength !== undefined ? { contentLength } : {}) }),
     })
 
     return await urlResponse.json()

@@ -44,7 +44,7 @@ const SubscriptionPage = ({ id }: { id: number }) => {
     }
 
     return (
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
             {videos.map((video) => (
                 <VideoCard key={video.id} video={video as never} showChannel={true} />
             ))}

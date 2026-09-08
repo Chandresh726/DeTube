@@ -1,7 +1,7 @@
 "use client";
 import { useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import bs58 from 'bs58';
 import { toast } from 'sonner';
 import { checkUserWallet, verifyUserWallet } from '../../util/fetch/wallet';
@@ -13,6 +13,20 @@ const ConnectWallet = ({ setWalletVerified, userId }: { setWalletVerified: (v: b
     const [loading, setLoading] = useState<boolean>(true);
     const [verified, setVerified] = useState<boolean>(false);
 
+    const isWalletVerified = useCallback(async (address: string) => {
+        try {
+            const res = await checkUserWallet(address, userId);
+            if (res.walletExists) {
+                setWalletVerified(true);
+                setVerified(true);
+            }
+        } catch {
+            // leave unverified
+        } finally {
+            setLoading(false);
+        }
+    }, [userId, setWalletVerified]);
+
     useEffect(() => {
         if (connected && publicKey) {
             setLoading(true);
@@ -20,8 +34,7 @@ const ConnectWallet = ({ setWalletVerified, userId }: { setWalletVerified: (v: b
             setWalletVerified(false);
             isWalletVerified(publicKey.toString());
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [connected, publicKey]);
+    }, [connected, publicKey, isWalletVerified, setWalletVerified]);
 
     const verifyWallet = async () => {
         setLoading(true);
@@ -47,20 +60,6 @@ const ConnectWallet = ({ setWalletVerified, userId }: { setWalletVerified: (v: b
             setLoading(false);
         }
     };
-
-    const isWalletVerified = async (address: string) => {
-        try {
-            const res = await checkUserWallet(address, userId);
-            if (res.walletExists) {
-                setWalletVerified(true);
-                setVerified(true);
-            }
-        } catch {
-            // leave unverified
-        } finally {
-            setLoading(false);
-        }
-    }
 
     return (
         <div className="mb-4 flex flex-col items-center">

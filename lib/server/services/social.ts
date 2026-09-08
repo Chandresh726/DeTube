@@ -1,5 +1,6 @@
 import prisma from "../db";
 import { AppError, isPrismaCode } from "../http";
+import { MAX_PAGE_SIZE } from "../env";
 import { timeSince } from "../presenters";
 
 export const reactionService = {
@@ -85,23 +86,25 @@ export const subscriptionService = {
   },
 
   async listForUser(userId: number, page?: number, limit?: number) {
-    const paginated = page !== undefined || limit !== undefined;
-    const p = page ?? 1;
-    const l = limit ?? 50;
+    const p = Math.max(1, Math.floor(page ?? 1));
+    const l = Math.min(Math.max(1, Math.floor(limit ?? 20)), MAX_PAGE_SIZE);
     const subs = await prisma.subscription.findMany({
       where: { userId },
-      ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
+      skip: (p - 1) * l,
+      take: l,
       select: { channel: { select: { id: true, name: true, image: true } } },
     });
     return subs.map((s) => ({ id: s.channel.id, name: s.channel.name, image: s.channel.image }));
   },
 
   async feedForUser(userId: number, page = 1, limit = 20) {
+    const p = Math.max(1, Math.floor(page));
+    const l = Math.min(Math.max(1, Math.floor(limit)), MAX_PAGE_SIZE);
     const videos = await prisma.video.findMany({
       where: { channel: { subscriptions: { some: { userId } } } },
       orderBy: { createdAt: "desc" },
-      skip: (page - 1) * limit,
-      take: limit,
+      skip: (p - 1) * l,
+      take: l,
       select: {
         id: true,
         title: true,
@@ -142,13 +145,15 @@ export const commentService = {
   },
 
   async list(videoId: string, page = 1, limit = 50) {
+    const p = Math.max(1, Math.floor(page));
+    const l = Math.min(Math.max(1, Math.floor(limit)), MAX_PAGE_SIZE);
     const [video, comments] = await Promise.all([
       prisma.video.findUnique({ where: { id: videoId }, select: { id: true } }),
       prisma.comment.findMany({
         where: { videoId },
         orderBy: { createdAt: "desc" },
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (p - 1) * l,
+        take: l,
         select: {
           id: true,
           content: true,

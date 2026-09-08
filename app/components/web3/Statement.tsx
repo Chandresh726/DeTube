@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { formatDTSol } from '@/lib/utils';
 
 type Tx = {
+  id: number;
   createdAt: string;
   amount: string | number;
   status: string;
@@ -94,8 +95,8 @@ function TxTable({ rows, kind }: { rows: Tx[]; kind: 'DEPOSIT' | 'WITHDRAWAL' | 
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {rows.map((transaction, index) => (
-                        <TableRow key={index}>
+                    {rows.map((transaction) => (
+                        <TableRow key={transaction.id}>
                             <TableCell>{formatDate(transaction.createdAt)}</TableCell>
                             <TableCell>{formatDTSol(Number(transaction.amount))} DTSol</TableCell>
                             <TableCell>
@@ -122,8 +123,8 @@ function TxTable({ rows, kind }: { rows: Tx[]; kind: 'DEPOSIT' | 'WITHDRAWAL' | 
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {rows.map((transaction, index) => (
-                    <TableRow key={index}>
+                {rows.map((transaction) => (
+                    <TableRow key={transaction.id}>
                         <TableCell>{formatDate(transaction.createdAt)}</TableCell>
                         <TableCell className="hidden lg:table-cell">
                             {transaction.wallet ? <TruncatedText text={transaction.wallet.address} /> : '—'}
@@ -145,14 +146,20 @@ function TxTable({ rows, kind }: { rows: Tx[]; kind: 'DEPOSIT' | 'WITHDRAWAL' | 
 
 const Statement = ({ session }: { session: { user: { id: number } } }) => {
     const [statement, setStatement] = useState<StatementData | null>(null);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         let cancelled = false;
         const getStatement = async (id: number) => {
             if (!id) return;
-            const data = await getUserStatement(id);
-            if (!cancelled && data) {
-                setStatement(data as StatementData);
+            try {
+                setError(null);
+                const data = await getUserStatement(id);
+                if (!cancelled && data) {
+                    setStatement(data as StatementData);
+                }
+            } catch {
+                if (!cancelled) setError('Failed to load transactions');
             }
         };
         if (session?.user?.id) {
@@ -163,6 +170,15 @@ const Statement = ({ session }: { session: { user: { id: number } } }) => {
         };
     }, [session]);
 
+    if (error) {
+        return (
+            <div className="mx-auto max-w-xl py-16 text-center">
+                <p className="text-lg font-semibold">Couldn&apos;t load transactions</p>
+                <p className="mt-2 text-sm text-muted-foreground">{error}</p>
+                <button className="mt-4 underline" onClick={() => window.location.reload()}>Retry</button>
+            </div>
+        );
+    }
     if (!statement) return <StatementLoading />
 
     return (

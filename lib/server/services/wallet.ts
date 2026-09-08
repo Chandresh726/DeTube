@@ -3,7 +3,7 @@ import bs58 from "bs58";
 import * as web3 from "@solana/web3.js";
 import prisma from "../db";
 import { AppError, isPrismaCode } from "../http";
-import { env, SOLANA_CONFIRM_TIMEOUT_MS } from "../env";
+import { env, MAX_PAGE_SIZE, SOLANA_CONFIRM_TIMEOUT_MS } from "../env";
 import { getConnection, getSolanaGateway } from "../solana";
 import { bigToString, requirePositiveLamports } from "../money";
 import { logWarn } from "../logger";
@@ -40,8 +40,33 @@ interface Challenge {
 
 const challenges = new Map<number, Challenge>();
 const CHALLENGE_TTL_MS = 10 * 60 * 1000;
+const MAX_CHALLENGES = 10000;
+
+function sweepExpiredChallenges(now = Date.now()): void {
+  if (challenges.size < MAX_CHALLENGES) {
+    // Cheap path: opportunistically drop expired entries.
+    for (const [k, v] of challenges) {
+      if (now > v.expiresAt) challenges.delete(k);
+      if (challenges.size < MAX_CHALLENGES) break;
+    }
+    return;
+  }
+  for (const [k, v] of challenges) {
+    if (now > v.expiresAt) challenges.delete(k);
+  }
+  // Bound memory if under attack: drop oldest inserts.
+  if (challenges.size >= MAX_CHALLENGES) {
+    const overflow = challenges.size - MAX_CHALLENGES + 1;
+    let n = 0;
+    for (const k of challenges.keys()) {
+      challenges.delete(k);
+      if (++n >= overflow) break;
+    }
+  }
+}
 
 export function issueWalletChallenge(userId: number): { message: string; nonce: string; expiresAt: number } {
+  sweepExpiredChallenges();
   const nonce = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}`;
   const expiresAt = Date.now() + CHALLENGE_TTL_MS;
   challenges.set(userId, { nonce, expiresAt });
@@ -141,13 +166,13 @@ export const walletService = {
     opts?: { type?: "DEPOSIT" | "WITHDRAWAL" | "THANKS"; page?: number; limit?: number },
   ) {
     const type = opts?.type;
-    const paginated = opts?.page !== undefined || opts?.limit !== undefined;
-    const page = opts?.page ?? 1;
-    const limit = opts?.limit ?? 200;
+    const page = Math.max(1, Math.floor(opts?.page ?? 1));
+    const limit = Math.min(Math.max(1, Math.floor(opts?.limit ?? 10)), MAX_PAGE_SIZE);
     const transactions = await prisma.transaction.findMany({
       where: { userId, ...(type ? { type } : {}) },
       orderBy: { createdAt: "desc" },
-      ...(paginated ? { skip: (page - 1) * limit, take: limit } : { take: limit }),
+      skip: (page - 1) * limit,
+      take: limit,
       select: {
         id: true,
         amount: true,
@@ -180,6 +205,8 @@ export const walletService = {
    * Secure deposit: verifies on-chain transfer to the central vault before
    * crediting. Idempotent on signature (unique constraint). FAILED proofs can
    * be retried: a later valid proof flips the row to SUCCESS + credits once.
+   * Sender-bound: proof must show input.address debited; replays by other
+   * users are rejected with CONFLICT.
    */
   async deposit(userId: number, input: { address: string; amount: bigint; signature: string }) {
     requirePositiveLamports(input.amount);
@@ -188,7 +215,16 @@ export const walletService = {
 
     const seen = await prisma.transaction.findUnique({ where: { signature: input.signature } });
     if (seen) {
-      if (seen.status === "SUCCESS") return { status: "SUCCESS" as const, replayed: true };
+      if (seen.status === "SUCCESS") {
+        // Bind replay to original owner/amount/wallet. Signatures are public;
+        // a different user replaying a victim's signature must not be credited.
+        if (seen.userId !== userId || seen.walletId !== wallet.id || seen.amount !== input.amount) {
+          throw new AppError("CONFLICT", "Signature already credited to another wallet");
+        }
+        return { status: "SUCCESS" as const, replayed: true };
+      }
+      // FAILED/PENDING rows belong to one user; block cross-user retries.
+      if (seen.userId !== userId) throw new AppError("CONFLICT", "Signature already processed");
       // Fall through and re-verify FAILED/PENDING rows instead of permanent CONFLICT.
     }
 
@@ -199,6 +235,7 @@ export const walletService = {
         signature: input.signature,
         expectedRecipient: central.publicKey.toBase58(),
         expectedLamports: input.amount,
+        expectedSender: input.address,
       }),
       SOLANA_CONFIRM_TIMEOUT_MS,
       "Solana verification",
@@ -208,10 +245,22 @@ export const walletService = {
     try {
       await prisma.$transaction(async (tx) => {
         if (seen) {
-          await tx.transaction.update({
-            where: { signature: input.signature },
+          // Conditional update: only one concurrent retry may flip to SUCCESS.
+          const updated = await tx.transaction.updateMany({
+            where: { signature: input.signature, status: { not: "SUCCESS" } },
             data: { status },
           });
+          if (updated.count === 0) {
+            // Lost race: re-read inside tx to decide replay vs conflict.
+            const row = await tx.transaction.findUnique({ where: { signature: input.signature } });
+            if (row?.status === "SUCCESS") {
+              if (row.userId !== userId || row.walletId !== wallet.id || row.amount !== input.amount) {
+                throw new AppError("CONFLICT", "Signature already credited to another wallet");
+              }
+              return;
+            }
+            throw new AppError("CONFLICT", "Signature already processed");
+          }
         } else {
           await tx.transaction.create({
             data: {
@@ -232,9 +281,15 @@ export const walletService = {
         }
       });
     } catch (e: unknown) {
+      if (e instanceof AppError) throw e;
       if (isPrismaCode(e, "P2002")) {
         const row = await prisma.transaction.findUnique({ where: { signature: input.signature } });
-        if (row?.status === "SUCCESS") return { status: "SUCCESS" as const, replayed: true };
+        if (row?.status === "SUCCESS") {
+          if (row.userId !== userId || row.walletId !== wallet.id || row.amount !== input.amount) {
+            throw new AppError("CONFLICT", "Signature already credited to another wallet");
+          }
+          return { status: "SUCCESS" as const, replayed: true };
+        }
         throw new AppError("CONFLICT", "Signature already processed");
       }
       throw e;
@@ -264,6 +319,9 @@ export const walletService = {
     }
 
     // Create PENDING row + guarded debit atomically.
+    // For no-key path we capture the PENDING row id so failures update the
+    // same row instead of leaving a phantom PENDING + second FAILED row.
+    let pendingId: number | undefined;
     try {
       await prisma.$transaction(async (tx) => {
         if (input.idempotencyKey) {
@@ -290,7 +348,7 @@ export const walletService = {
             });
           }
         } else {
-          await tx.transaction.create({
+          const row = await tx.transaction.create({
             data: {
               userId,
               walletId: wallet.id,
@@ -299,6 +357,7 @@ export const walletService = {
               status: "PENDING",
             },
           });
+          pendingId = row.id;
         }
         const debit = await tx.user.updateMany({
           where: { id: userId, balance: { gte: input.amount } },
@@ -330,16 +389,27 @@ export const walletService = {
     try {
       toPubkey = new web3.PublicKey(input.walletAddress);
     } catch {
-      // Refund debit since address is unusable.
-      await prisma.user.update({ where: { id: userId }, data: { balance: { increment: input.amount } } });
-      await prisma.transaction.create({
-        data: {
-          userId,
-          walletId: wallet.id,
-          amount: input.amount,
-          type: "WITHDRAWAL",
-          status: "FAILED",
-        },
+      // Refund debit and fail the originating PENDING row (no phantom rows).
+      await prisma.$transaction(async (txx) => {
+        await txx.user.update({ where: { id: userId }, data: { balance: { increment: input.amount } } });
+        if (input.idempotencyKey) {
+          await txx.transaction.update({
+            where: { idempotencyKey: input.idempotencyKey as string },
+            data: { status: "FAILED" },
+          });
+        } else if (pendingId !== undefined) {
+          await txx.transaction.update({ where: { id: pendingId }, data: { status: "FAILED" } });
+        } else {
+          await txx.transaction.create({
+            data: {
+              userId,
+              walletId: wallet.id,
+              amount: input.amount,
+              type: "WITHDRAWAL",
+              status: "FAILED",
+            },
+          });
+        }
       });
       throw new AppError("BAD_REQUEST", "Invalid wallet address");
     }
@@ -360,6 +430,11 @@ export const walletService = {
       if (input.idempotencyKey) {
         await prisma.transaction.update({
           where: { idempotencyKey: input.idempotencyKey },
+          data: { status: "SUCCESS", signature },
+        });
+      } else if (pendingId !== undefined) {
+        await prisma.transaction.update({
+          where: { id: pendingId },
           data: { status: "SUCCESS", signature },
         });
       } else {
@@ -385,6 +460,8 @@ export const walletService = {
             where: { idempotencyKey: input.idempotencyKey as string },
             data: { status: "FAILED" },
           });
+        } else if (pendingId !== undefined) {
+          await txx.transaction.update({ where: { id: pendingId }, data: { status: "FAILED" } });
         } else {
           await txx.transaction.create({
             data: {
@@ -403,20 +480,113 @@ export const walletService = {
     }
   },
 
-  /** Atomic thanks: guarded debit + credit in one interactive transaction. */
+  /** Atomic thanks: idempotency-key-first, then guarded debit + credit in one tx. */
   async thanks(fromUserId: number, input: { channelId: number; amount: bigint; idempotencyKey?: string }) {
     requirePositiveLamports(input.amount);
     if (input.idempotencyKey) {
       const prior = await prisma.transaction.findUnique({
         where: { idempotencyKey: input.idempotencyKey },
       });
-      if (prior?.status === "SUCCESS") return;
+      if (prior) {
+        if (prior.status === "SUCCESS") {
+          if (prior.userId !== fromUserId || prior.channelId !== input.channelId || prior.amount !== input.amount) {
+            throw new AppError("CONFLICT", "Idempotency key already used");
+          }
+          return;
+        }
+        if (prior.status === "PENDING") throw new AppError("CONFLICT", "Tip already in progress");
+        // FAILED prior falls through to retry (row reused inside tx).
+      }
     }
     const channel = await prisma.channel.findUnique({ where: { id: input.channelId } });
     if (!channel) throw new AppError("NOT_FOUND", "Channel not found");
     if (channel.userId === fromUserId) throw new AppError("BAD_REQUEST", "Cannot tip your own channel");
 
     await prisma.$transaction(async (tx) => {
+      // Reserve idempotency key FIRST so concurrent same-key retries conflict
+      // before any money moves (fixes double-spend with zero ledger row).
+      if (input.idempotencyKey) {
+        const existing = await tx.transaction.findUnique({
+          where: { idempotencyKey: input.idempotencyKey as string },
+        });
+        if (existing?.status === "SUCCESS") {
+          if (
+            existing.userId !== fromUserId ||
+            existing.channelId !== input.channelId ||
+            existing.amount !== input.amount
+          ) {
+            throw new AppError("CONFLICT", "Idempotency key already used");
+          }
+          return;
+        }
+        if (existing && existing.status !== "FAILED") {
+          throw new AppError("CONFLICT", "Tip already in progress");
+        }
+        if (existing?.status === "FAILED") {
+          await tx.transaction.update({
+            where: { idempotencyKey: input.idempotencyKey as string },
+            data: {
+              status: "SUCCESS",
+              amount: input.amount,
+              channelId: input.channelId,
+              userId: fromUserId,
+            },
+          });
+        } else if (!existing) {
+          try {
+            await tx.transaction.create({
+              data: {
+                userId: fromUserId,
+                channelId: input.channelId,
+                amount: input.amount,
+                type: "THANKS",
+                status: "SUCCESS",
+                idempotencyKey: input.idempotencyKey as string,
+              },
+            });
+          } catch (e: unknown) {
+            // Concurrent same-key insert won the race: abort without moving money.
+            if (isPrismaCode(e, "P2002")) throw new AppError("CONFLICT", "Duplicate tip submission");
+            throw e;
+          }
+          // Row reserved; debit/credit below completes the tip.
+          const debit = await tx.user.updateMany({
+            where: { id: fromUserId, balance: { gte: input.amount } },
+            data: { balance: { decrement: input.amount } },
+          });
+          if (debit.count === 0) {
+            // Reservation row rolls back with the tx; no phantom ledger entry.
+            throw new AppError("BAD_REQUEST", "Insufficient balance");
+          }
+          await tx.user.update({
+            where: { id: channel.userId },
+            data: { balance: { increment: input.amount } },
+          });
+          return;
+        }
+        // FAILED row reused above: fall through to debit/credit once.
+      } else {
+        // No idempotency key: legacy path, single attempt, ledger row after money moves.
+        const debit = await tx.user.updateMany({
+          where: { id: fromUserId, balance: { gte: input.amount } },
+          data: { balance: { decrement: input.amount } },
+        });
+        if (debit.count === 0) throw new AppError("BAD_REQUEST", "Insufficient balance");
+        await tx.user.update({
+          where: { id: channel.userId },
+          data: { balance: { increment: input.amount } },
+        });
+        await tx.transaction.create({
+          data: {
+            userId: fromUserId,
+            channelId: input.channelId,
+            amount: input.amount,
+            type: "THANKS",
+            status: "SUCCESS",
+          },
+        });
+        return;
+      }
       const debit = await tx.user.updateMany({
         where: { id: fromUserId, balance: { gte: input.amount } },
         data: { balance: { decrement: input.amount } },
@@ -426,21 +596,6 @@ export const walletService = {
         where: { id: channel.userId },
         data: { balance: { increment: input.amount } },
       });
-      try {
-        await tx.transaction.create({
-          data: {
-            userId: fromUserId,
-            channelId: input.channelId,
-            amount: input.amount,
-            type: "THANKS",
-            status: "SUCCESS",
-            ...(input.idempotencyKey ? { idempotencyKey: input.idempotencyKey } : {}),
-          },
-        });
-      } catch (e: unknown) {
-        if (isPrismaCode(e, "P2002")) return;
-        throw e;
-      }
     });
   },
 };

@@ -1,7 +1,6 @@
 "use client";
 import React, { useState } from 'react'
 import { MdUpload } from "react-icons/md";
-import { v4 as uuidv4 } from 'uuid';
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner';
 import { getPresignedUrl, hitPresignedurl, hitVideoPresignedurl } from '../../util/fetch/r2';
@@ -18,7 +17,7 @@ import { Spinner } from '@/components/ui/spinner';
 const UploadVideoForm = ({ channelId }: { channelId: number }) => {
     const [thumbnail, setThumbnail] = useState<string | null>(null);
     const [video, setVideo] = useState<string | null>(null);
-    const [videoId] = useState<string>(() => uuidv4());
+    const [videoId] = useState<string>(() => crypto.randomUUID());
     const [uploadingThumbnail, setUploadingThumbnail] = useState(false);
     const [uploadingVideo, setUploadingVideo] = useState(false);
     const [progress, setProgress] = useState(0);
@@ -41,7 +40,7 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
         if (!file) return;
         try {
             setUploadingThumbnail(true)
-            const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId, file.type);
+            const { presignedUrl, url } = await getPresignedUrl('thumbnail', videoId, file.type, file.size);
             const uploadResponse = await hitPresignedurl(presignedUrl, file)
 
             if (uploadResponse.ok) {
@@ -62,7 +61,7 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
         try {
             setUploadingVideo(true)
             setProgress(0)
-            const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId, file.type);
+            const { presignedUrl, url } = await getPresignedUrl('temp-video', videoId, file.type, file.size);
             const uploadResponse = await hitVideoPresignedurl(presignedUrl, file, (p) => {
                 setProgress(p);
             });
@@ -90,11 +89,10 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
             return;
         }
         setLoadingFlag(true)
-        let redirectPath = "/"
         try {
             const response = await createVideo(channelId, videoId, title, description, thumbnail, video);
             if (response && response.videoId) {
-                redirectPath = '/video/' + response.videoId
+                router.push('/video/' + response.videoId)
             } else {
                 toast.error('Failed to publish video');
             }
@@ -103,7 +101,6 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
         } finally {
             setLoadingFlag(false)
         }
-        router.push(redirectPath)
     };
 
     return (
@@ -122,7 +119,6 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
                             {uploadingThumbnail ? (
                                 <Skeleton className="h-full w-full rounded-none" />
                             ) : (thumbnail ?
-                                // eslint-disable-next-line @next/next/no-img-element
                                 <img src={thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" /> : <div className="h-full w-full bg-muted" />
                             )}
                             <label htmlFor="upload-thumbnail" className="absolute inset-0 flex cursor-pointer items-center justify-center bg-background/60 text-sm font-medium hover:bg-background/80">

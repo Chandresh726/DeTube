@@ -121,5 +121,3 @@ export const authOptions: NextAuthOptions = {
     signIn: "/logIn",
   },
 };
-
-export { BCRYPT_ROUNDS };

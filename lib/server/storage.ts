@@ -5,7 +5,7 @@ import { env, PRESIGNED_URL_EXPIRY_SECONDS } from "./env";
 let client: S3Client | undefined;
 
 export interface StorageGateway {
-  getUploadUrl(fileName: string, contentType: string): Promise<string>;
+  getUploadUrl(fileName: string, contentType: string, contentLength?: number): Promise<string>;
   getPublicUrl(fileName: string): string;
 }
 
@@ -24,11 +24,13 @@ export function getR2Client(): S3Client {
 }
 
 export class R2StorageGateway implements StorageGateway {
-  async getUploadUrl(fileName: string, contentType: string): Promise<string> {
+  async getUploadUrl(fileName: string, contentType: string, contentLength?: number): Promise<string> {
     const command = new PutObjectCommand({
       Bucket: env.r2BucketName,
       Key: fileName,
       ContentType: contentType,
+      ...(contentLength !== undefined ? { ContentLength: contentLength } : {}),
+      CacheControl: "public, max-age=31536000, immutable",
     });
     return getSignedUrl(getR2Client(), command, { expiresIn: PRESIGNED_URL_EXPIRY_SECONDS });
   }

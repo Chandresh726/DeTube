@@ -1,6 +1,6 @@
 import prisma from "../db";
 import { AppError, isPrismaCode } from "../http";
-import { TOP_SUPPORTERS_LIMIT } from "../env";
+import { MAX_PAGE_SIZE, TOP_SUPPORTERS_LIMIT } from "../env";
 import { formatViews, timeSince, toVideoCard } from "../presenters";
 
 async function requireVideo(id: string) {
@@ -141,13 +141,13 @@ export const videoService = {
   },
 
   async getLiked(userId: number, page?: number, limit?: number) {
-    const paginated = page !== undefined || limit !== undefined;
-    const p = page ?? 1;
-    const l = limit ?? 50;
+    const p = Math.max(1, Math.floor(page ?? 1));
+    const l = Math.min(Math.max(1, Math.floor(limit ?? 20)), MAX_PAGE_SIZE);
     const liked = await prisma.reaction.findMany({
       where: { userId, type: "LIKE" },
       orderBy: { createdAt: "desc" },
-      ...(paginated ? { skip: (p - 1) * l, take: l } : {}),
+      skip: (p - 1) * l,
+      take: l,
       select: {
         createdAt: true,
         video: {

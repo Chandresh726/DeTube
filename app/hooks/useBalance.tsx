@@ -61,14 +61,16 @@ const useProvideBalance = (id: number | undefined): BalanceContextProps => {
 
 // Define the props for the provider component
 interface BalanceProviderProps {
-  session: { user?: { id?: number } } | null;
+  session: { user?: { id?: number | string } } | null;
   children: ReactNode;
 }
 
 // Provider component that supplies the balance context to its children
 export const BalanceProvider = ({ session, children }: BalanceProviderProps) => {
-  const id = session?.user?.id;
-  const balance = useProvideBalance(id);
+  const rawId = session?.user?.id;
+  const id = typeof rawId === 'string' ? Number(rawId) : rawId;
+  const safeId = typeof id === 'number' && Number.isSafeInteger(id) ? id : undefined;
+  const balance = useProvideBalance(safeId);
   return (
     <BalanceContext.Provider value={balance}>
       {children}

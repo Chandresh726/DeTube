@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { MdUpload } from "react-icons/md";
 import { useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react';
-import { v4 as uuidv4 } from 'uuid';
 import { toast } from 'sonner';
 import { getPresignedUrl, hitPresignedurl } from '../../util/fetch/r2';
 import { createChannel } from '../../util/fetch/channel';
@@ -26,7 +25,7 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
   const [loadingFlag, setLoadingFlag] = useState(false);
 
   const router = useRouter()
-  const [logoId] = useState(() => uuidv4());
+  const [logoId] = useState(() => crypto.randomUUID());
 
   const isFormValid = channelName !== '' && description !== '' && logo !== null && !uploadingLogo;
   void session;
@@ -36,7 +35,7 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
     if (!file) return;
     try {
       setUploadingLogo(true)
-      const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoId, file.type);
+      const { presignedUrl, url } = await getPresignedUrl('channel-logo', logoId, file.type, file.size);
       const uploadResponse = await hitPresignedurl(presignedUrl, file)
 
       if (uploadResponse.ok) {
@@ -58,12 +57,11 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
       return;
     }
     setLoadingFlag(true)
-    let redirectPath = "/"
     try {
       const response = await createChannel(userId, channelName, description, logo);
       if (response && response.channelId) {
-        redirectPath = '/channel/' + response.channelId
         await update({ channelId: response.channelId });
+        router.push('/channel/' + response.channelId)
       } else {
         toast.error('Failed to create channel');
       }
@@ -72,7 +70,6 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
     } finally {
       setLoadingFlag(false)
     }
-    router.push(redirectPath)
   };
 
   return (

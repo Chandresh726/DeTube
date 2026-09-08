@@ -24,7 +24,7 @@ const ViewVideo = ({ videoData }: { videoData: {
     return (
         <div className="container mx-auto px-1 lg:px-16">
             <div className="flex flex-col lg:flex-row">
-                <div className="grow lg:w-3/4">
+                <div className="min-w-0 grow lg:flex-[3]">
                     <div className="relative aspect-video overflow-hidden rounded-xl bg-black">
                         <video
                             controls
@@ -37,7 +37,7 @@ const ViewVideo = ({ videoData }: { videoData: {
                     </div>
                     <VideoInfo data={videoData} />
                 </div>
-                <div className="mt-4 flex flex-col gap-3 lg:mt-0 lg:w-1/4 lg:pl-8">
+                <div className="mt-4 flex min-w-0 flex-col gap-3 lg:mt-0 lg:flex-[1] lg:pl-8">
                     <ChannelInfo channel={videoData.channel} />
                     <SubscribeButton channelId={videoData.channel.id} />
                     <ThanksButton channelId={videoData.channel.id} channelName={videoData.channel.name} />

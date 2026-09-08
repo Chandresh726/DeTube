@@ -7,9 +7,9 @@ import { rateLimitByUser } from '@/lib/server/rate-limit';
 import { RATE_LIMIT_MAX_WRITE } from '@/lib/server/env';
 
 /**
- * Canonical reaction endpoint (authenticated).
- * Legacy { status: check|like|dislike|remove } contract preserved for the
- * existing frontend; new clients should use /api/video/reaction instead.
+ * @deprecated Legacy reaction endpoint. Preserved for existing frontend.
+ * New clients should use /api/video/reaction instead. Sunset: remove after
+ * frontend migrates to REST (GET/POST /api/video/reaction).
  */
 export async function POST(req: NextRequest) {
   try {
