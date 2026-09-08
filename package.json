@@ -22,7 +22,7 @@
     "db:validate": "prisma validate",
     "migrate:media-urls": "node scripts/migrate-media-urls-to-r2.mjs",
     "postinstall": "prisma generate",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install || true"
   },
   "lint-staged": {
     "*.{ts,tsx,js,mjs,cjs,json,css,md}": "prettier --write"
