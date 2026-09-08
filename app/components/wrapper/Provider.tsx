@@ -13,11 +13,11 @@ const Provider = ({
 }) => {
     return (
         <SessionWrapper>
-            <AppWalletProvider>
-                <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+                <AppWalletProvider>
                     {children}
-                </ThemeProvider>
-            </AppWalletProvider>
+                </AppWalletProvider>
+            </ThemeProvider>
         </SessionWrapper>
     )
 }
