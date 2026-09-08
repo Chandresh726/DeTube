@@ -99,7 +99,7 @@ const Reaction = ({ stats, videoId }: { stats: { likeCount: number; dislikeCount
     };
 
     return (
-        <div className="my-4 flex w-full items-center gap-2 rounded-2xl border bg-muted p-2">
+        <div className="my-4 flex w-full items-center gap-2 rounded-xl border bg-muted p-2">
             <Button
                 variant={isLiked ? 'secondary' : 'ghost'}
                 className="flex-1 flex-col gap-1 data-[active=true]:text-green-600"

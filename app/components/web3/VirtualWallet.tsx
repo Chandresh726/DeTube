@@ -6,7 +6,6 @@ import { useBalance } from '../../hooks/useBalance';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { formatDTSol } from '@/lib/utils';
 
 const VirtualWallet = () => {
@@ -15,8 +14,7 @@ const VirtualWallet = () => {
     const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
     return (
-        <Card className="m-1 py-0">
-            <Separator className="my-1" />
+        <Card className="m-2 mb-2 py-0">
             <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 py-2">
                 <Link href="/statement" className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     <CardTitle className="text-xs font-medium text-muted-foreground">Current balance</CardTitle>

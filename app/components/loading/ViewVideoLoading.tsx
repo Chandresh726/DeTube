@@ -7,7 +7,7 @@ const ViewVideoLoading = () => {
       <div className="flex flex-col gap-4 lg:flex-row">
         <div className="grow lg:w-3/4">
           <div className="relative aspect-video overflow-hidden rounded-xl">
-            <Skeleton className="h-full w-full rounded-none" />
+            <Skeleton className="h-full w-full rounded-xl" />
           </div>
           <div className="mt-4 flex flex-col gap-3">
             <Skeleton className="h-7 w-full" />

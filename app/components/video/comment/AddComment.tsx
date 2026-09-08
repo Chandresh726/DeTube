@@ -67,7 +67,7 @@ const AddComment = ({ videoId, triggerUpdate }: { videoId: string; triggerUpdate
                                 type="button"
                                 variant="secondary"
                                 size="sm"
-                                className="rounded-full"
+                                className="rounded-xl"
                                 onClick={handleCancel}
                                 disabled={submitting}
                             >
@@ -76,7 +76,7 @@ const AddComment = ({ videoId, triggerUpdate }: { videoId: string; triggerUpdate
                             <Button
                                 type="submit"
                                 size="sm"
-                                className="rounded-full"
+                                className="rounded-xl"
                                 disabled={submitting}
                             >
                                 Comment

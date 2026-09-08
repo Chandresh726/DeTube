@@ -117,7 +117,7 @@ const UploadVideoForm = ({ channelId }: { channelId: number }) => {
                         <FieldLabel htmlFor="upload-thumbnail">Upload Thumbnail</FieldLabel>
                         <div className="relative aspect-video overflow-hidden rounded-xl border md:w-96">
                             {uploadingThumbnail ? (
-                                <Skeleton className="h-full w-full rounded-none" />
+                                <Skeleton className="h-full w-full rounded-xl" />
                             ) : (thumbnail ?
                                 <img src={thumbnail} alt="Thumbnail preview" className="h-full w-full object-cover" /> : <div className="h-full w-full bg-muted" />
                             )}

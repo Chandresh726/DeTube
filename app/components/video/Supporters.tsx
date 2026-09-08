@@ -7,8 +7,8 @@ import { DEFAULT_AVATAR } from '@/lib/constants';
 
 const Supporters = ({ supporters }: { supporters: Array<{ id: number | string; name: string; image?: string | null; amount: number | string }> }) => {
     return (
-        <Card className="w-full py-0">
-            <CardHeader className="bg-muted px-3 py-2">
+        <Card className="w-full overflow-hidden py-0">
+            <CardHeader className="rounded-t-xl bg-muted px-3 py-2">
               <CardTitle className="text-sm font-semibold">Top Supporters</CardTitle>
             </CardHeader>
             <CardContent className="p-0">

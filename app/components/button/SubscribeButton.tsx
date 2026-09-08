@@ -54,7 +54,7 @@ const SubscribeButton = ({ channelId }: { channelId: number }) => {
             onClick={handleSubscribe}
             disabled={pending}
             variant={isSubscribed ? 'secondary' : 'destructive'}
-            className="mt-4 w-full rounded-full"
+            className="mt-4 w-full rounded-xl"
             aria-pressed={isSubscribed}
         >
             {isSubscribed ? 'Unsubscribe' : 'Subscribe'}

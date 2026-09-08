@@ -34,25 +34,25 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
                 )}
             >
                 <nav className={cn('flex flex-col gap-1 p-2 text-base', sidebarState === 'icons' && 'items-center')} aria-label="Primary">
-                    <SidebarItem icon={<GoHome aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Home" link="/" sidebarState={sidebarState} />
+                    <SidebarItem icon={<GoHome aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Home" link="/" sidebarState={sidebarState} />
                     {session && (
                         <>
-                            <SidebarItem icon={<MdOutlineSubscriptions aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Subscription" link="/subscription" sidebarState={sidebarState} />
+                            <SidebarItem icon={<MdOutlineSubscriptions aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Subscription" link="/subscription" sidebarState={sidebarState} />
                             <Separator className="my-1" />
-                            <SidebarItem icon={<GoHistory aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Your Transactions" link="/statement" sidebarState={sidebarState} />
-                            <SidebarItem icon={<BiLike aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Liked Videos" link="/liked" sidebarState={sidebarState} />
+                            <SidebarItem icon={<GoHistory aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Your Transactions" link="/statement" sidebarState={sidebarState} />
+                            <SidebarItem icon={<BiLike aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Liked Videos" link="/liked" sidebarState={sidebarState} />
                         </>
                     )}
                     {session?.user?.channelId && (
                         <>
-                            <SidebarItem icon={<GrChannel aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Your Channel" link={`/channel/${session.user.channelId}`} sidebarState={sidebarState} />
-                            <SidebarItem icon={<GrUpload aria-hidden className={sidebarState === 'icons' ? 'size-8' : 'size-6'} />} text="Upload Video" link="/uploadVideo" sidebarState={sidebarState} />
+                            <SidebarItem icon={<GrChannel aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Your Channel" link={`/channel/${session.user.channelId}`} sidebarState={sidebarState} />
+                            <SidebarItem icon={<GrUpload aria-hidden className={sidebarState === 'icons' ? 'size-5' : 'size-6'} />} text="Upload Video" link="/uploadVideo" sidebarState={sidebarState} />
                         </>
                     )}
                     {session && subscriptions.length > 0 && (
                         <div className="w-full">
                             <Separator className="my-1" />
-                            {sidebarState === 'full' && <div className="text-center text-lg">Subscriptions</div>}
+                            {sidebarState === 'full' && <div className="px-3 pt-1 text-sm font-medium text-muted-foreground">Subscriptions</div>}
                             <div className="mt-2 flex flex-col gap-1">
                                 {subscriptions.map(sub => (
                                     <SidebarChannel key={sub.id} id={sub.id} image={sub.image} name={sub.name} sidebarState={sidebarState} />
@@ -69,7 +69,7 @@ const SideBar: React.FC<SidebarProps> = ({ session, sidebarState, subscriptions 
                     ) : sidebarState === 'icons' ? (
                         <Button asChild variant="ghost" className="m-1 flex items-center justify-center p-2" aria-label="Transactions">
                             <Link href="/statement">
-                                <TbWallet className="size-8" aria-hidden />
+                                <TbWallet className="size-5" aria-hidden />
                             </Link>
                         </Button>
                     ) : null}

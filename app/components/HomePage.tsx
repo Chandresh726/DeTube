@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Clapperboard } from 'lucide-react';
 import { getHomeVideoData } from '../util/fetch/video';
 import VideoCard from './video/VideoCard';
+import VideoCardLoading from './loading/VideoCardLoading';
 import VideosLoading from './loading/VideosLoading';
 import { EmptyState } from '@/components/shared/empty-state';
 
@@ -93,7 +94,7 @@ const HomePage = () => {
                 <VideoCard key={video.id} video={video as never} showChannel={true} />
             ))}
             <div ref={sentinelRef} aria-hidden className="col-span-full h-8" />
-            {loading && <VideosLoading />}
+            {loading && Array.from({ length: 6 }).map((_, i) => <VideoCardLoading key={`home-skeleton-${i}`} />)}
         </div>
     );
 };

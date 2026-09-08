@@ -73,7 +73,7 @@ const ThanksButton = ({ channelId, channelName }: { channelId: number; channelNa
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-                <Button onClick={openModal} className="mt-4 w-full rounded-full" aria-label={`Send thanks to ${channelName}`}>
+                <Button onClick={openModal} className="mt-4 w-full rounded-xl" aria-label={`Send thanks to ${channelName}`}>
                     Thanks
                     <CiHeart aria-hidden data-icon="inline-end" />
                 </Button>

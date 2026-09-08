@@ -86,9 +86,9 @@ const CreateChannelForm = ({ userId }: { userId: number }) => {
                 <FieldLabel htmlFor="channel-logo">Channel Logo</FieldLabel>
                 <div className="relative aspect-square size-56 overflow-hidden rounded-xl border">
                   {uploadingLogo ? (
-                    <Skeleton className="h-full w-full rounded-none" />
+                    <Skeleton className="h-full w-full rounded-xl" />
                   ) : logo ? (
-                    <Avatar className="size-full rounded-none">
+                    <Avatar className="size-full rounded-xl">
                       <AvatarImage src={logo} alt="Channel logo preview" className="object-cover" />
                       <AvatarFallback>{channelName.slice(0, 2).toUpperCase() || 'CH'}</AvatarFallback>
                     </Avatar>
