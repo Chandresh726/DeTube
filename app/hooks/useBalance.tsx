@@ -22,9 +22,11 @@ const useProvideBalance = (id: number | undefined): BalanceContextProps => {
     setLoading(true);
     try {
       const response = await getUserBalance(userId);
-      if (response) {
-        setBalance(response.balance);
-      }
+      // API serializes BigInt as decimal strings; coerce once so all
+      // consumers (sidebar, thanks slider, deposit/withdraw) see a number.
+      const raw = response?.balance;
+      const parsed = typeof raw === "string" ? Number(raw) : (raw as number | null);
+      setBalance(typeof parsed === "number" && Number.isFinite(parsed) ? parsed : null);
       setError(null);
     } catch (err) {
       setError('Failed to fetch balance');
